@@ -3,6 +3,9 @@ name 'Plack-Middleware-ServerStatus-Lite';
 all_from 'lib/Plack/Middleware/ServerStatus/Lite.pm';
 
 # requires '';
+requires 'parent';
+requires 'Plack::Middleware';
+requires 'Net::CIDR::Lite';
 
 tests 't/*.t';
 author_tests 'xt';
