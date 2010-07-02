@@ -63,7 +63,7 @@ sub _handle_server_status {
     my $busy = 0;
     for my $line (split /\n/, $ps) {
         my ($ppid, $pid, $command) = split /\s+/, $line, 3;
-        next if $ppid != $parent;
+        next if $ppid =~ /\D/ || $ppid != $parent;
         if ( $command =~ /^server-status-lite\[\d+\]\sA\s/ ) {
             $busy++;
         }
