@@ -25,12 +25,13 @@ sub call {
 
     $self->set_state("A", $env);
 
-    if( $self->path && $env->{PATH_INFO} eq $self->path ) {
-        return $self->_handle_server_status($env);
-    }
-
-    return try {
-        $self->app->($env);
+    try {
+        if( $self->path && $env->{PATH_INFO} eq $self->path ) {
+            $self->_handle_server_status($env);
+        }
+        else {
+            $self->app->($env);
+        }
     } catch {
         die $_;
     } finally {
