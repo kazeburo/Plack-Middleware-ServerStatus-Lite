@@ -6,6 +6,7 @@ all_from 'lib/Plack/Middleware/ServerStatus/Lite.pm';
 requires 'parent';
 requires 'Plack::Middleware';
 requires 'Net::CIDR::Lite';
+requires 'Try::Tiny', 0.06;
 
 tests 't/*.t';
 author_tests 'xt';
@@ -14,3 +15,4 @@ test_requires 'Test::More';
 auto_set_repository;
 auto_include;
 WriteAll;
+

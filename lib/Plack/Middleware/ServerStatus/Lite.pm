@@ -5,6 +5,7 @@ use warnings;
 use parent qw(Plack::Middleware);
 use Plack::Util::Accessor qw(path allow);
 use Net::CIDR::Lite;
+use Try::Tiny;
 
 our $VERSION = 0.01;
 
@@ -24,17 +25,17 @@ sub call {
 
     $self->set_state("A", $env);
 
-    my $res;
     if( $self->path && $env->{PATH_INFO} eq $self->path ) {
-        $res = $self->_handle_server_status($env);
-    }
-    else {
-        $res = $self->app->($env);
+        return $self->_handle_server_status($env);
     }
 
-    $self->set_state("_");
-
-    return $res;
+    return try {
+        $self->app->($env);
+    } catch {
+        die $_;
+    } finally {
+        $self->set_state("_");
+    };
 }
 
 my $prev='';
