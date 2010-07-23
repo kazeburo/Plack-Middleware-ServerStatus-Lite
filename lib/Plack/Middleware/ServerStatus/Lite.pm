@@ -3,7 +3,8 @@ package Plack::Middleware::ServerStatus::Lite;
 use strict;
 use warnings;
 use parent qw(Plack::Middleware);
-use Plack::Util::Accessor qw(path allow);
+use Plack::Util::Accessor qw(scoreboard path allow);
+use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
@@ -11,12 +12,20 @@ our $VERSION = 0.01;
 
 sub prepare_app {
     my $self = shift;
-    
+    $self->{uptime} = time;
+
     if ( $self->allow ) {
         my $cidr = Net::CIDR::Lite->new();
         my @ip = ref $self->allow ? @{$self->allow} : ($self->allow);
         $cidr->add_any( $_ ) for @ip;
         $self->{__cidr} = $cidr;
+    }
+
+    if ( $self->scoreboard ) {
+        my $scoreboard = Parallel::Scoreboard->new(
+            base_dir => $self->scoreboard
+        );
+        $self->{__scoreboard} = $scoreboard;
     }
 }
 
@@ -42,12 +51,18 @@ sub call {
 my $prev='';
 sub set_state {
     my $self = shift;
+    return if !$self->{__scoreboard};
+
     my $status = shift || '_';
     my $env = shift;
     if ( $env ) {
-        $prev = join(" ", $env->{REMOTE_ADDR}, $env->{HTTP_HOST}, $env->{REQUEST_METHOD}, $env->{REQUEST_URI}, $env->{SERVER_PROTOCOL});
+        no warnings 'uninitialized';
+        $prev = join(" ", $env->{REMOTE_ADDR}, $env->{HTTP_HOST} || '', 
+                          $env->{REQUEST_METHOD}, $env->{REQUEST_URI}, $env->{SERVER_PROTOCOL});
     }
-    $0 = sprintf("server-status-lite[%s] %s %s",getppid, $status, $prev);
+    $self->{__scoreboard}->update(
+        sprintf("%s %s",$status, $prev)
+    );
 }
 
 sub _handle_server_status {
@@ -57,27 +72,35 @@ sub _handle_server_status {
         return [403, ['Content-Type' => 'text/plain'], [ 'Forbidden' ]];
     }
 
-    my $ps = `LC_ALL=C command ps -o ppid,pid,command`;
-    $ps =~ s/^\s+//mg;
+    my $body="Uptime: $self->{uptime}\n";
+    if ( my $scoreboard = $self->{__scoreboard} ) {
+        my $stats = $scoreboard->read_all();
+        my $raw_stats='';
+        my $idle = 0;
+        my $busy = 0;
 
-    my $parent = getppid;
-    my $idle = 0;
-    my $busy = 0;
-    for my $line (split /\n/, $ps) {
-        my ($ppid, $pid, $command) = split /\s+/, $line, 3;
-        next if $ppid =~ /\D/ || $ppid != $parent;
-        if ( $command =~ /^server-status-lite\[\d+\]\sA\s/ ) {
-            $busy++;
+        for my $pid ( sort { $a <=> $b } keys %$stats) {
+            if ( $stats->{$pid} =~ m!^A! ) {
+                $busy++;
+            }
+            else {
+                $idle++;
+            }
+            $raw_stats .= sprintf "%s %s\n", $pid, $stats->{$pid};
         }
-        else {
-            $idle++;
-        }
+        $body .= <<EOF;
+BusyWorkers: $busy
+IdleWorkers: $idle
+--
+pid status remote_addr host method uri protocol
+$raw_stats
+EOF
     }
+    else {
+       $body .= "WARN: Scoreboard has been disabled\n";
 
-    return [200, ['Content-Type' => 'text/plain'], [ 
-        "BusyWorkers: $busy\n",
-        "IdleWorkers: $idle\n",
-    ]];
+    }
+    return [200, ['Content-Type' => 'text/plain'], [ $body ]];
 }
 
 sub allowed {

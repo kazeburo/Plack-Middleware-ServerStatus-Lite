@@ -7,6 +7,7 @@ requires 'parent';
 requires 'Plack::Middleware';
 requires 'Net::CIDR::Lite';
 requires 'Try::Tiny', 0.06;
+requires 'Parallel::Scoreboard', 0.02;
 
 tests 't/*.t';
 author_tests 'xt';
