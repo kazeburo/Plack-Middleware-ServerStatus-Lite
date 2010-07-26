@@ -125,7 +125,7 @@ __END__
 
 =head1 NAME
 
-Plack::Middleware::ServerStatus::Lite - how server status like Apache's mod_status
+Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_status
 
 =head1 SYNOPSIS
 
@@ -134,19 +134,60 @@ Plack::Middleware::ServerStatus::Lite - how server status like Apache's mod_stat
   builder {
       enable "Plack::Middleware::ServerStatus::Lite",
           path => '/server-status',
-          allow => [ '127.0.0.1', '192.168.0.0/16' ];
+          allow => [ '127.0.0.1', '192.168.0.0/16' ],
+          scoreboard => '/var/run/server';
       $app;
   };
 
+  % curl http://server:port/server-status
+  Uptime: 1234567789
+  BusyWorkers: 2
+  IdleWorkers: 3
+  --
+  pid status remote_addr host method uri protocol
+  20060 A 127.0.0.1 localhost:10001 GET / HTTP/1.1
+  20061 .
+  20062 A 127.0.0.1 localhost:10001 GET /server-status HTTP/1.1
+  20063 .
+  20064 .
+
+
 =head1 DESCRIPTION
 
-Plack::Middleware::ServerStatus::Lite is ..
+Plack::Middleware::ServerStatus::Lite is a middleware that display server status in multi-process Plack servers such as Starman and Starlet. This middleware Simply changes status to Active before the application is executed, and makes status Idle after executing the application. Network IO wait etc. cannot be treated. 
+
+=head1 CONFIGURATIONS
+
+=over 4
+
+=item path
+
+  path => '/server-status',
+
+location that displays server status
+
+=item allow
+
+  allow => '127.0.0.1'
+  allow => ['192.168.0.0/16', '10.0.0.0/8']
+
+host based access control of a page of server status
+
+=item scoreboard
+
+  scoreboard => '/path/to/dir'
+
+Scoreboard directory, Middleware::ServerStatus::Lite stores processes activity information in
+
+=back
 
 =head1 AUTHOR
 
 Masahiro Nagano E<lt>kazeburo {at} gmail.comE<gt>
 
 =head1 SEE ALSO
+
+Original ServerStatus by cho45 <http://github.com/cho45/Plack-Middleware-ServerStatus>
 
 =head1 LICENSE
 
