@@ -21,7 +21,7 @@ else {
 
 
 for my $server ( @servers ) {
-    warn "use $server for test";
+    warn "using $server for test";
 
     my $dir = File::Temp::tempdir( CLEANUP => 1 );
     my $app = builder {
