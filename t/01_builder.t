@@ -7,20 +7,20 @@ use Plack::Middleware::ServerStatus::Lite;
 use File::Temp;
 
 {
-my $app = builder {
-    enable 'ServerStatus::Lite', path => '/server-status', allow=>'0.0.0.0/0';
-    sub { [200, [ 'Content-Type' => 'text/plain' ], [ "Hello World" ]] };
-};
-
-test_psgi
-    app => $app,
-    client => sub {
-        my $cb = shift;
-        my $req = HTTP::Request->new(GET => "http://localhost/server-status");
-        my $res = $cb->($req);
-        like( $res->content, qr/Uptime:/ );
-        unlike( $res->content, qr/IdleWorker/ );
+    my $app = builder {
+        enable 'ServerStatus::Lite', path => '/server-status', allow=>'0.0.0.0/0';
+        sub { [200, [ 'Content-Type' => 'text/plain' ], [ "Hello World" ]] };
     };
+
+    test_psgi
+        app => $app,
+        client => sub {
+            my $cb = shift;
+            my $req = HTTP::Request->new(GET => "http://localhost/server-status");
+            my $res = $cb->($req);
+            like( $res->content, qr/Uptime:/ );
+            unlike( $res->content, qr/IdleWorker/ );
+        };
 }
 
 {

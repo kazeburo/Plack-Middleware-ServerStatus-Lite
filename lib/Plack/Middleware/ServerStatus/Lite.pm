@@ -5,6 +5,7 @@ use warnings;
 use parent qw(Plack::Middleware);
 use Plack::Util::Accessor qw(scoreboard path allow);
 use Parallel::Scoreboard;
+use Proc::ProcessTable;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
@@ -79,14 +80,17 @@ sub _handle_server_status {
         my $idle = 0;
         my $busy = 0;
 
-        for my $pid ( sort { $a <=> $b } keys %$stats) {
-            if ( $stats->{$pid} =~ m!^A! ) {
+        my $ppid = getppid;
+        my $proctable = Proc::ProcessTable->new;
+        my @all_workers = map { $_->pid } grep { $_->ppid == $ppid } @{$proctable->table};
+        for my $pid ( @all_workers  ) {
+            if ( exists $stats->{$pid} && $stats->{$pid} =~ m!^A! ) {
                 $busy++;
             }
             else {
                 $idle++;
             }
-            $raw_stats .= sprintf "%s %s\n", $pid, $stats->{$pid};
+            $raw_stats .= sprintf "%s %s\n", $pid, $stats->{$pid} || '.';
         }
         $body .= <<EOF;
 BusyWorkers: $busy

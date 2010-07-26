@@ -8,11 +8,12 @@ requires 'Plack::Middleware';
 requires 'Net::CIDR::Lite';
 requires 'Try::Tiny', 0.06;
 requires 'Parallel::Scoreboard', 0.02;
-
+requires 'Proc::ProcessTable';
 tests 't/*.t';
 author_tests 'xt';
 
 test_requires 'Test::More';
+test_requires 'Test::TCP';
 auto_set_repository;
 auto_include;
 WriteAll;
