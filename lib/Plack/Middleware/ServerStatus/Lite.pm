@@ -8,7 +8,7 @@ use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
-our $VERSION = 0.01;
+our $VERSION = '0.01';
 
 sub prepare_app {
     my $self = shift;
