@@ -154,7 +154,7 @@ Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_sta
 
 =head1 DESCRIPTION
 
-Plack::Middleware::ServerStatus::Lite is a middleware that display server status in multi-process Plack servers such as Starman and Starlet. This middleware Simply changes status to Active before the application is executed, and makes status Idle after executing the application. Network IO wait etc. cannot be treated. 
+Plack::Middleware::ServerStatus::Lite is a middleware that display server status in multi-process Plack servers such as Starman and Starlet. This middleware Simply changes status to Active before the application is executed, and makes status Idle after executing the application. so cannot monitor keepalive session and network i/o wait. 
 
 =head1 CONFIGURATIONS
 
