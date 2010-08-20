@@ -5,7 +5,6 @@ use warnings;
 use parent qw(Plack::Middleware);
 use Plack::Util::Accessor qw(scoreboard path allow);
 use Parallel::Scoreboard;
-use POSIX::AtFork;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
@@ -29,8 +28,17 @@ sub prepare_app {
         $self->{__scoreboard} = $scoreboard;
     }
 
-    POSIX::AtFork->add_to_child( sub { $self->set_state(".") } );
-
+    {
+        no strict 'refs';
+        no warnings 'redefine';
+        *CORE::GLOBAL::fork = sub {
+            my $pid = CORE::fork();
+            if ( defined $pid && $pid == 0 ) {
+                $self->set_state(".");
+            }
+            $pid;
+        };
+    }
 }
 
 sub call {
