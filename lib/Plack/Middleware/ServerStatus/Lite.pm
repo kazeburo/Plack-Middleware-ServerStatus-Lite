@@ -5,6 +5,7 @@ use warnings;
 use parent qw(Plack::Middleware);
 use Plack::Util::Accessor qw(scoreboard path allow);
 use Parallel::Scoreboard;
+use POSIX::AtFork;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
@@ -27,6 +28,9 @@ sub prepare_app {
         );
         $self->{__scoreboard} = $scoreboard;
     }
+
+    POSIX::AtFork->add_to_child( sub { $self->set_state(".") } );
+
 }
 
 sub call {
@@ -61,7 +65,7 @@ sub set_state {
                           $env->{REQUEST_METHOD}, $env->{REQUEST_URI}, $env->{SERVER_PROTOCOL});
     }
     $self->{__scoreboard}->update(
-        sprintf("%s %s",$status, $prev)
+        sprintf("%s %s %s",getppid, $status, $prev)
     );
 }
 
@@ -78,19 +82,11 @@ sub _handle_server_status {
         my $raw_stats='';
         my $idle = 0;
         my $busy = 0;
-
-        my $parent_pid = getppid;
-        my $ps = `LC_ALL=C command ps -o ppid,pid`;
-        $ps =~ s/^\s+//mg;
-        my @all_workers;
-        for my $line ( split /\n/, $ps ) {
-            next if $line =~ m/^\D/;
-            my ($ppid, $pid) = split /\s+/, $line, 2;
-            push @all_workers, $pid if $ppid == $parent_pid;
-        }
-
-        for my $pid ( @all_workers  ) {
-            if ( exists $stats->{$pid} && $stats->{$pid} =~ m!^A! ) {
+        my $ppid = getppid;
+        for my $pid ( keys %$stats  ) {
+            next if !$stats->{$pid} || $stats->{$pid} !~ m!^$ppid !;
+            $stats->{$pid} =~ s/^$ppid //;
+            if ( $stats->{$pid} && $stats->{$pid} =~ m!^A! ) {
                 $busy++;
             }
             else {
