@@ -72,7 +72,18 @@ sub _handle_server_status {
         return [403, ['Content-Type' => 'text/plain'], [ 'Forbidden' ]];
     }
 
-    my $body="Uptime: $self->{uptime}\n";
+    my ($upsince, $duration) = (time - $self->{uptime}), "";
+    my @spans = (86400 => 'days', 3600 => 'hours', 60 => 'minutes');
+    while (@spans) {
+        my ($seconds,$unit) = (shift @spans, shift @spans);
+        if ($upsince > $seconds) {
+            $duration .= int($upsince/$seconds) . " $unit, ";
+            $upsince = $upsince % $seconds;
+        }
+    }
+    $duration .= "$upsince seconds";
+
+    my $body="Uptime: $self->{uptime} ($duration)\n";
     if ( my $scoreboard = $self->{__scoreboard} ) {
         my $stats = $scoreboard->read_all();
         my $raw_stats='';
