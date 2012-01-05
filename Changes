@@ -1,4 +1,7 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.02    Thu Jan 5 10:03:51 2012
+        - Show uptime also in human-readble form. thanks nichtich.
+
 0.01    Thu Jul  1 11:00:13 2010
         - original version

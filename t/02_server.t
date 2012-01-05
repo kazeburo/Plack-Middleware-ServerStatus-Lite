@@ -16,7 +16,7 @@ if ( !@servers ) {
     plan skip_all => 'Starlet or Starman isnot installed';
 }
 else {
-    plan tests => 2 * scalar @servers;
+    plan tests => 3 * scalar @servers;
 }
 
 
@@ -39,6 +39,7 @@ for my $server ( @servers ) {
                 my $res = $ua->get("http://localhost:$port/server-status");
                 like( $res->content, qr/IdleWorkers: 3/ );
                 like( $res->content, qr/BusyWorkers: 2/ );
+                like( $res->content, qr/Uptime: \d+ \(\d seconds\)/ );
             }
             elsif ( defined $pid ) {
                 # slow response

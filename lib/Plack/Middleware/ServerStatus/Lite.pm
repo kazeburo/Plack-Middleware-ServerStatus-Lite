@@ -8,7 +8,7 @@ use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 sub prepare_app {
     my $self = shift;
@@ -72,7 +72,8 @@ sub _handle_server_status {
         return [403, ['Content-Type' => 'text/plain'], [ 'Forbidden' ]];
     }
 
-    my ($upsince, $duration) = (time - $self->{uptime}), "";
+    my $upsince = time - $self->{uptime};
+    my $duration = "";
     my @spans = (86400 => 'days', 3600 => 'hours', 60 => 'minutes');
     while (@spans) {
         my ($seconds,$unit) = (shift @spans, shift @spans);
