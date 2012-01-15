@@ -34,18 +34,42 @@ sub call {
 
     $self->set_state("A", $env);
 
+    my $res;
     try {
         if( $self->path && $env->{PATH_INFO} eq $self->path ) {
-            $self->_handle_server_status($env);
+            $res = $self->_handle_server_status($env);
+            $self->set_state("_");
         }
         else {
-            $self->app->($env);
+            my $app_res = $self->app->($env);
+
+            if ( ref $app_res eq 'ARRAY' ) {
+                $res = $app_res;
+                $self->set_state("_");
+            }
+            else {
+                $res = sub {
+                    my $respond = shift;
+
+                    my $writer;
+                    try {
+                        $app_res->(sub { return $writer = $respond->(@_) });
+                    } catch {
+                        if ($writer) {
+                            $writer->close;
+                        }
+                        die $_;
+                    } finally {
+                        $self->set_state("_");
+                    };
+                };
+            }
         }
     } catch {
-        die $_;
-    } finally {
         $self->set_state("_");
+        die $_;
     };
+    return $res;
 }
 
 my $prev='';
