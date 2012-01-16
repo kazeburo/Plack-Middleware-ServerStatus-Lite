@@ -8,7 +8,7 @@ use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 sub prepare_app {
     my $self = shift;
@@ -190,7 +190,7 @@ Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_sta
 
 =head1 DESCRIPTION
 
-Plack::Middleware::ServerStatus::Lite is a middleware that display server status in multi-process Plack servers such as Starman and Starlet. This middleware changes status only before and after executing the application. so cannot monitor keepalive session and network i/o wait. 
+Plack::Middleware::ServerStatus::Lite is a middleware that display server status in multiprocess Plack servers such as Starman and Starlet. This middleware changes status only before and after executing the application. so cannot monitor keepalive session and network i/o wait. 
 
 =head1 CONFIGURATIONS
 

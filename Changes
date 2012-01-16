@@ -1,5 +1,8 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.03    Mon Jan 16 10:09:50 2012
+        - Support delayed response. thanks nihen.
+
 0.02    Thu Jan 5 10:03:51 2012
         - Show uptime also in human-readble form. thanks nichtich.
 
