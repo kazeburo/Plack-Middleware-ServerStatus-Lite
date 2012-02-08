@@ -1,5 +1,8 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.05   Thu Feb 9 00:54:11 2012
+        - Some OS does not support ps "x" opt. uses "-e" instead of "x" 
+
 0.04    Wed Feb 8 10:04:32 2012
         - added "x" opt for ps command. thanks wolfgang.
           Without -x, the Server-Status will not work if the Server is started 
