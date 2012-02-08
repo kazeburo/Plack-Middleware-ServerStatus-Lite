@@ -7,9 +7,14 @@ use Plack::Loader;
 use File::Temp;
 
 my @servers;
-for ( qw/Starman Starlet/ ) {
-    if ( eval "require $_; 1" ) {
-        push @servers, $_;
+for my $server ( qw/Starman Starlet/ ) {
+    my $installed = 0;
+    eval {
+        require 'Plack/Handler/'.$server.'.pm';
+        $installed = 1;
+    };
+    if ( $installed ) {
+        push @servers, $server;
     }
 }
 if ( !@servers ) {
