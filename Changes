@@ -1,5 +1,11 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.04    Wed Feb 8 10:04:32 2012
+        - added "x" opt for ps command. thanks wolfgang.
+          Without -x, the Server-Status will not work if the Server is started 
+          with eg. Server::Starter which detaches the processes 
+          from a controlling terminal.
+
 0.03    Mon Jan 16 10:09:50 2012
         - Support delayed response. thanks nihen.
 
