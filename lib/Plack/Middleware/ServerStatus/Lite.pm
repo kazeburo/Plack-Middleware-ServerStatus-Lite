@@ -7,6 +7,7 @@ use Plack::Util::Accessor qw(scoreboard path allow);
 use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
+use JSON;
 
 our $VERSION = '0.05';
 
@@ -109,6 +110,7 @@ sub _handle_server_status {
     $duration .= "$upsince seconds";
 
     my $body="Uptime: $self->{uptime} ($duration)\n";
+    my %stats = ( 'Uptime' => $self->{uptime} );
     if ( my $scoreboard = $self->{__scoreboard} ) {
         my $stats = $scoreboard->read_all();
         my $raw_stats='';
@@ -125,6 +127,7 @@ sub _handle_server_status {
             push @all_workers, $pid if $ppid == $parent_pid;
         }
 
+        my @raw_stats;
         for my $pid ( @all_workers  ) {
             if ( exists $stats->{$pid} && $stats->{$pid} =~ m!^A! ) {
                 $busy++;
@@ -133,6 +136,16 @@ sub _handle_server_status {
                 $idle++;
             }
             $raw_stats .= sprintf "%s %s\n", $pid, $stats->{$pid} || '.';
+            my @pstats = split /\s/, $stats->{$pid} || '.';
+            push @raw_stats, {
+                pid => $pid,
+                status => defined $pstats[0] ? $pstats[0] : undef, 
+                remote_addr => defined $pstats[1] ? $pstats[1] : undef,
+                host => defined $pstats[2] ? $pstats[2] : undef,
+                method => defined $pstats[3] ? $pstats[3] : undef,
+                uri => defined $pstats[4] ? $pstats[4] : undef,
+                protocol => defined $pstats[5] ? $pstats[5] : undef
+            };
         }
         $body .= <<EOF;
 BusyWorkers: $busy
@@ -141,10 +154,16 @@ IdleWorkers: $idle
 pid status remote_addr host method uri protocol
 $raw_stats
 EOF
+        $stats{BusyWorkers} = $busy;
+        $stats{IdleWorkers} = $idle;
+        $stats{stats} = \@raw_stats;
     }
     else {
        $body .= "WARN: Scoreboard has been disabled\n";
-
+       $stats{WARN} = 'Scoreboard has been disabled';
+    }
+    if ( ($env->{QUERY_STRING} || '') =~ m!\bjson\b!i ) {
+        return [200, ['Content-Type' => 'application/json; charset=utf-8'], [ JSON::encode_json(\%stats) ]];
     }
     return [200, ['Content-Type' => 'text/plain'], [ $body ]];
 }
@@ -187,6 +206,16 @@ Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_sta
   20063 .
   20064 .
 
+  # JSON format
+  % curl http://server:port/server-status?json
+  {"Uptime":"1332476669","BusyWorkers":"2",
+   "stats":[
+     {"protocol":null,"remote_addr":null,"pid":"78639",
+      "status":".","method":null,"uri":null,"host":null},
+     {"protocol":"HTTP/1.1","remote_addr":"127.0.0.1","pid":"78640",
+      "status":"A","method":"GET","uri":"/","host":"localhost:10226"},
+     ...
+  ],"IdleWorkers":"3"}
 
 =head1 DESCRIPTION
 
