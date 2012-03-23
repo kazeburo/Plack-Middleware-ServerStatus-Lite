@@ -9,7 +9,7 @@ use Net::CIDR::Lite;
 use Try::Tiny;
 use JSON;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 sub prepare_app {
     my $self = shift;

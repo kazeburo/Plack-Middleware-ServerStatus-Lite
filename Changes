@@ -1,5 +1,8 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.06   Fri Mar 23 13:46:27 2012
+        - Support JSON format status
+
 0.05   Thu Feb 9 00:54:11 2012
         - Some OS does not support ps "x" opt. uses "-e" instead of "x" 
 
