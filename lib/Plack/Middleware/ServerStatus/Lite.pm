@@ -3,11 +3,12 @@ package Plack::Middleware::ServerStatus::Lite;
 use strict;
 use warnings;
 use parent qw(Plack::Middleware);
-use Plack::Util::Accessor qw(scoreboard path allow);
+use Plack::Util::Accessor qw(scoreboard path allow display_totalaccess);
 use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
 use JSON;
+use File::Spec;
 
 our $VERSION = '0.06';
 
@@ -28,12 +29,30 @@ sub prepare_app {
         );
         $self->{__scoreboard} = $scoreboard;
     }
+
+    if ( $self->display_totalaccess ) {
+        eval {
+            require Cache::FastMmap;
+        };
+        die "Cache::FastMmap is needed to use display_totalaccess feature" if $@;
+    }
 }
 
 sub call {
     my ($self, $env) = @_;
 
     $self->set_state("A", $env);
+
+    if ( $self->display_totalaccess ) {
+        my $mmap = $self->fastmmap;
+        $mmap->get_and_set(
+            'totalaccess',
+            sub { 
+                my $access = $_[1] || 0;
+                return ++$access;
+            }
+        );
+    }
 
     my $res;
     try {
@@ -111,6 +130,14 @@ sub _handle_server_status {
 
     my $body="Uptime: $self->{uptime} ($duration)\n";
     my %stats = ( 'Uptime' => $self->{uptime} );
+
+    if ( $self->display_totalaccess ) {
+        my $mmap = $self->fastmmap;
+        my $totalaccess = $mmap->get('totalaccess') || 0;
+        $body .= "Total Accesses: $totalaccess\n";
+        $stats{TotalAccesses} = $totalaccess;
+    }
+
     if ( my $scoreboard = $self->{__scoreboard} ) {
         my $stats = $scoreboard->read_all();
         my $raw_stats='';
@@ -172,6 +199,18 @@ sub allowed {
     my ( $self , $address ) = @_;
     return unless $self->{__cidr};
     return $self->{__cidr}->find( $address );
+}
+
+sub fastmmap {
+    my $self = shift;
+    my $parent_pid = getppid;
+    $self->{__mmap} ||=  Cache::FastMmap->new(
+        share_file => File::Spec->catfile(File::Spec->tmpdir,'serverstatus-lite-sharefile-'.$parent_pid),
+        init_file => 0,
+        raw_values => 1,
+        expire_time => 0,
+    );
+    $self->{__mmap};
 }
 
 
