@@ -32,12 +32,14 @@ for my $server ( @servers ) {
     warn "using $server for test";
 
     my $dir = File::Temp::tempdir( CLEANUP => 1 );
+    my ($fh, $filename) = File::Temp::tempfile( UNLINK=>1, EXLOCK=>0 );
+
     my $app = builder {
         enable 'ServerStatus::Lite', 
             path => '/server-status',
             allow=>'0.0.0.0/0',
             scoreboard => $dir,
-            display_totalaccess => 1;
+            counter_file => $filename;
         sub { [200, [ 'Content-Type' => 'text/plain' ], [ "Hello World" ]] };
     };
 
@@ -76,4 +78,5 @@ for my $server ( @servers ) {
             $loader->run($app);
         },
     );
+
 }
