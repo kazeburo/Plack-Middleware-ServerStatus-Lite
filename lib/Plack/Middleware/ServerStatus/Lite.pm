@@ -249,7 +249,7 @@ Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_sta
 
   % curl http://server:port/server-status
   Uptime: 1234567789
-  TotalAccesses: 123
+  Total Accesses: 123
   BusyWorkers: 2
   IdleWorkers: 3
   --
