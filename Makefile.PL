@@ -9,7 +9,6 @@ requires 'Net::CIDR::Lite';
 requires 'Try::Tiny', 0.09;
 requires 'Parallel::Scoreboard', 0.02;
 requires 'JSON';
-recommends 'Cache::FastMmap';
 
 tests 't/*.t';
 author_tests 'xt';

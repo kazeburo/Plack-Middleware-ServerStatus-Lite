@@ -3,12 +3,13 @@ package Plack::Middleware::ServerStatus::Lite;
 use strict;
 use warnings;
 use parent qw(Plack::Middleware);
-use Plack::Util::Accessor qw(scoreboard path allow display_totalaccess);
+use Plack::Util::Accessor qw(scoreboard path allow counter_file);
 use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
 use JSON;
-use File::Spec;
+use Fcntl qw(:DEFAULT :flock);
+use IO::Handle;
 
 our $VERSION = '0.06';
 
@@ -30,12 +31,6 @@ sub prepare_app {
         $self->{__scoreboard} = $scoreboard;
     }
 
-    if ( $self->display_totalaccess ) {
-        eval {
-            require Cache::FastMmap;
-        };
-        die "Cache::FastMmap is needed to use display_totalaccess feature" if $@;
-    }
 }
 
 sub call {
@@ -43,15 +38,8 @@ sub call {
 
     $self->set_state("A", $env);
 
-    if ( $self->display_totalaccess ) {
-        my $mmap = $self->fastmmap;
-        $mmap->get_and_set(
-            'totalaccess',
-            sub { 
-                my $access = $_[1] || 0;
-                return ++$access;
-            }
-        );
+    if ( $self->counter_file ) {
+        $self->counter(1);
     }
 
     my $res;
@@ -102,7 +90,7 @@ sub set_state {
     if ( $env ) {
         no warnings 'uninitialized';
         $prev = join(" ", $env->{REMOTE_ADDR}, $env->{HTTP_HOST} || '', 
-                          $env->{REQUEST_METHOD}, $env->{REQUEST_URI}, $env->{SERVER_PROTOCOL});
+                          $env->{REQUEST_METHOD}, $env->{REQUEST_URI}, $env->{SERVER_PROTOCOL}, time);
     }
     $self->{__scoreboard}->update(
         sprintf("%s %s",$status, $prev)
@@ -131,11 +119,10 @@ sub _handle_server_status {
     my $body="Uptime: $self->{uptime} ($duration)\n";
     my %stats = ( 'Uptime' => $self->{uptime} );
 
-    if ( $self->display_totalaccess ) {
-        my $mmap = $self->fastmmap;
-        my $totalaccess = $mmap->get('totalaccess') || 0;
-        $body .= "Total Accesses: $totalaccess\n";
-        $stats{TotalAccesses} = $totalaccess;
+    if ( $self->counter_file ) {
+        my $counter = $self->counter;
+        $body .= sprintf "Total Accesses: %s\n", $counter;
+        $stats{TotalAccesses} = $counter;
     }
 
     if ( my $scoreboard = $self->{__scoreboard} ) {
@@ -162,8 +149,10 @@ sub _handle_server_status {
             else {
                 $idle++;
             }
-            $raw_stats .= sprintf "%s %s\n", $pid, $stats->{$pid} || '.';
-            my @pstats = split /\s/, $stats->{$pid} || '.';
+
+            my @pstats = split /\s/, ($stats->{$pid} || '.');
+            $pstats[6] = time - $pstats[6] if defined $pstats[6];
+            $raw_stats .= sprintf "%s %s\n", $pid, join(" ", @pstats);
             push @raw_stats, {
                 pid => $pid,
                 status => defined $pstats[0] ? $pstats[0] : undef, 
@@ -171,14 +160,15 @@ sub _handle_server_status {
                 host => defined $pstats[2] ? $pstats[2] : undef,
                 method => defined $pstats[3] ? $pstats[3] : undef,
                 uri => defined $pstats[4] ? $pstats[4] : undef,
-                protocol => defined $pstats[5] ? $pstats[5] : undef
+                protocol => defined $pstats[5] ? $pstats[5] : undef,
+                ss => defined $pstats[6] ? $pstats[6] : undef
             };
         }
         $body .= <<EOF;
 BusyWorkers: $busy
 IdleWorkers: $idle
 --
-pid status remote_addr host method uri protocol
+pid status remote_addr host method uri protocol ss
 $raw_stats
 EOF
         $stats{BusyWorkers} = $busy;
@@ -201,18 +191,41 @@ sub allowed {
     return $self->{__cidr}->find( $address );
 }
 
-sub fastmmap {
+sub counter {
     my $self = shift;
     my $parent_pid = getppid;
-    $self->{__mmap} ||=  Cache::FastMmap->new(
-        share_file => File::Spec->catfile(File::Spec->tmpdir,'serverstatus-lite-sharefile-'.$parent_pid),
-        init_file => 0,
-        raw_values => 1,
-        expire_time => 0,
-    );
-    $self->{__mmap};
+    if ( ! $self->{__counter} ) {
+        sysopen( my $fh, $self->counter_file, O_CREAT|O_RDWR ) or die "cannot open counter_file: $!";
+        autoflush $fh 1;
+        $self->{__counter} = $fh;
+        flock $fh, LOCK_EX;
+        my $len = sysread $fh, my $buf, 10;
+        if ( !$len || $buf != $parent_pid ) {
+            seek $fh, 0, 0;
+            syswrite $fh, sprintf("%-10d%-20d", $parent_pid, 0);
+        } 
+        flock $fh, LOCK_UN;
+    }
+    if ( @_ ) {
+        my $fh = $self->{__counter};
+        flock $fh, LOCK_EX;
+        seek $fh, 10, 0;
+        sysread $fh, my $counter, 20;
+        $counter++;
+        seek $fh, 0, 0;
+        syswrite $fh, sprintf("%-10d%-20d", $parent_pid, $counter);
+        flock $fh, LOCK_UN;
+        return $counter;
+    }
+    else {
+        my $fh = $self->{__counter};
+        flock $fh, LOCK_EX;
+        seek $fh, 10, 0;
+        sysread $fh, my $counter, 20;
+        flock $fh, LOCK_UN;
+        return $counter + 0;
+    }
 }
-
 
 1;
 __END__
@@ -229,19 +242,21 @@ Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_sta
       enable "Plack::Middleware::ServerStatus::Lite",
           path => '/server-status',
           allow => [ '127.0.0.1', '192.168.0.0/16' ],
+          counter_file => '/tmp/counter_file',
           scoreboard => '/var/run/server';
       $app;
   };
 
   % curl http://server:port/server-status
   Uptime: 1234567789
+  TotalAccesses: 123
   BusyWorkers: 2
   IdleWorkers: 3
   --
-  pid status remote_addr host method uri protocol
-  20060 A 127.0.0.1 localhost:10001 GET / HTTP/1.1
+  pid status remote_addr host method uri protocol ss
+  20060 A 127.0.0.1 localhost:10001 GET / HTTP/1.1 1
   20061 .
-  20062 A 127.0.0.1 localhost:10001 GET /server-status HTTP/1.1
+  20062 A 127.0.0.1 localhost:10001 GET /server-status HTTP/1.1 0
   20063 .
   20064 .
 
@@ -250,9 +265,9 @@ Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_sta
   {"Uptime":"1332476669","BusyWorkers":"2",
    "stats":[
      {"protocol":null,"remote_addr":null,"pid":"78639",
-      "status":".","method":null,"uri":null,"host":null},
+      "status":".","method":null,"uri":null,"host":null,"ss":null},
      {"protocol":"HTTP/1.1","remote_addr":"127.0.0.1","pid":"78640",
-      "status":"A","method":"GET","uri":"/","host":"localhost:10226"},
+      "status":"A","method":"GET","uri":"/","host":"localhost:10226","ss":0},
      ...
   ],"IdleWorkers":"3"}
 
@@ -283,7 +298,17 @@ host based access control of a page of server status
 
 Scoreboard directory, Middleware::ServerStatus::Lite stores processes activity information in
 
+=item counter_file
+
+  counter_file => '/path/to/counter_file'
+
+Enable Total Access counter
+
 =back
+
+=head1 WHAT DOES "SS" MEAN IN STATUS
+
+Seconds since beginning of most recent request
 
 =head1 AUTHOR
 
