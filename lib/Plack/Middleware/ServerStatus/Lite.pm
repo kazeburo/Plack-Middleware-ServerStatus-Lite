@@ -38,9 +38,6 @@ sub call {
 
     $self->set_state("A", $env);
 
-    if ( $self->counter_file ) {
-        $self->counter(1);
-    }
 
     my $res;
     try {
@@ -76,6 +73,8 @@ sub call {
     } catch {
         $self->set_state("_");
         die $_;
+    } finally {
+        $self->update_counter($res);
     };
     return $res;
 }
@@ -120,9 +119,12 @@ sub _handle_server_status {
     my %stats = ( 'Uptime' => $self->{uptime} );
 
     if ( $self->counter_file ) {
-        my $counter = $self->counter;
+        my ($counter, $bytes) = $self->counter;
+        my $kbytes = int($bytes / 1_000);
         $body .= sprintf "Total Accesses: %s\n", $counter;
+        $body .= sprintf "Total Kbytes: %s\n", $kbytes;
         $stats{TotalAccesses} = $counter;
+        $stats{TotalKbytes} = $kbytes
     }
 
     if ( my $scoreboard = $self->{__scoreboard} ) {
@@ -191,6 +193,16 @@ sub allowed {
     return $self->{__cidr}->find( $address );
 }
 
+sub update_counter {
+    my ($self, $res) = @_;
+    return unless ( $self->counter_file );
+    my $bytes = 0;
+    if ($res){
+        $bytes = Plack::Util::content_length($res->[2]);
+    }
+    $self->counter(1, $bytes);
+
+}
 sub counter {
     my $self = shift;
     my $parent_pid = getppid;
@@ -202,18 +214,25 @@ sub counter {
         my $len = sysread $fh, my $buf, 10;
         if ( !$len || $buf != $parent_pid ) {
             seek $fh, 0, 0;
-            syswrite $fh, sprintf("%-10d%-20d", $parent_pid, 0);
+            syswrite $fh, sprintf("%-10d%-20d%-20d", $parent_pid, 0, 0);
         } 
         flock $fh, LOCK_UN;
     }
     if ( @_ ) {
+        my ($count, $bytes) = @_;
         my $fh = $self->{__counter};
         flock $fh, LOCK_EX;
         seek $fh, 10, 0;
         sysread $fh, my $counter, 20;
-        $counter++;
+        sysread $fh, my $total_bytes, 20;
+        $counter += $count;
+        if ($total_bytes + $bytes > 2**53){ # see docs
+            $total_bytes = 0;
+        }else{
+            $total_bytes += $bytes;
+        }
         seek $fh, 0, 0;
-        syswrite $fh, sprintf("%-10d%-20d", $parent_pid, $counter);
+        syswrite $fh, sprintf("%-10d%-20d%-20d", $parent_pid, $counter, $total_bytes);
         flock $fh, LOCK_UN;
         return $counter;
     }
@@ -222,8 +241,9 @@ sub counter {
         flock $fh, LOCK_EX;
         seek $fh, 10, 0;
         sysread $fh, my $counter, 20;
+        sysread $fh, my $total_bytes, 20;
         flock $fh, LOCK_UN;
-        return $counter + 0;
+        return $counter + 0, $total_bytes + 0;
     }
 }
 
@@ -250,6 +270,7 @@ Plack::Middleware::ServerStatus::Lite - show server status like Apache's mod_sta
   % curl http://server:port/server-status
   Uptime: 1234567789
   Total Accesses: 123
+  Total Kbytes: 72057594037927936
   BusyWorkers: 2
   IdleWorkers: 3
   --
@@ -305,6 +326,13 @@ Scoreboard directory, Middleware::ServerStatus::Lite stores processes activity i
 Enable Total Access counter
 
 =back
+
+=head1 TOTAL BYTES
+
+The largest integer that 32-bit Perl can store without loss of precision 
+is 2**53. So rather than getting all fancy with Math::BigInt, we're just
+going to be conservative and wrap that around to 0. That's enough to count
+1 GB per second for a hundred days.
 
 =head1 WHAT DOES "SS" MEAN IN STATUS
 
