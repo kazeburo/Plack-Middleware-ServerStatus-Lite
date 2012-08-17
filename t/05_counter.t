@@ -6,9 +6,6 @@ use Plack::Builder;
 use Plack::Loader;
 use File::Temp;
 
-if ( ! eval { require Cache::FastMmap; 1 } ) {
-    plan skip_all => 'Cache::FastMmap isnot installed';
-}
 
 my @servers;
 for my $server ( qw/Starman Starlet/ ) {
@@ -25,8 +22,13 @@ if ( !@servers ) {
     plan skip_all => 'Starlet or Starman isnot installed';
 }
 else {
-    plan tests => scalar @servers;
+    plan tests => scalar @servers * 2;
 }
+
+my $accesses = 0;
+my $bytes = 0;
+my $response_string = "Hello World"x2_000;
+my $response_length = length($response_string);
 
 for my $server ( @servers ) {
     warn "using $server for test";
@@ -40,7 +42,7 @@ for my $server ( @servers ) {
             allow=>'0.0.0.0/0',
             scoreboard => $dir,
             counter_file => $filename;
-        sub { [200, [ 'Content-Type' => 'text/plain' ], [ "Hello World" ]] };
+        sub { [200, [ 'Content-Type' => 'text/plain' ], [ $response_string ]] };
     };
 
     test_tcp(
@@ -51,11 +53,16 @@ for my $server ( @servers ) {
             my $max = 14;
             for ( 1..$max ) {
                 $ua->get("http://localhost:$port/");
+                $bytes += $response_length;
             }
 
             my $res = $ua->get("http://localhost:$port/server-status");
-            my $accesss = $max+1;
-            like $res->content, qr/Total Accesses: $accesss/;
+            $accesses += $max; # this hasn't counted the current hit yet
+            $bytes += 100; # ballpark, doesn't matter
+            my $total_kbytes = int($bytes / 1_000);
+            like $res->content, qr/Total Accesses: $accesses/;
+            like $res->content, qr/Total Kbytes: $total_kbytes/;
+            $accesses += 1;  # count the current hit for the next time around
         },
         server => sub {
             my $port = shift;
