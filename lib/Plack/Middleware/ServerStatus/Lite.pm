@@ -39,36 +39,36 @@ sub call {
 
     $self->set_state("A", $env);
     my $back_state = sub {
-	$self->set_state("_");
+        $self->set_state("_");
     };
     my $guard = bless $back_state, 'Plack::Middleware::ServerStatus::Lite::Guard';
 
     if( $self->path && $env->{PATH_INFO} eq $self->path ) {
-	my $res = $self->_handle_server_status($env);
-	if ( $self->counter_file ) {
-	    my $length = Plack::Util::content_length($res->[2]);
-	    $self->counter(1,$length);
-	}
-	return $res;
+        my $res = $self->_handle_server_status($env);
+        if ( $self->counter_file ) {
+            my $length = Plack::Util::content_length($res->[2]);
+            $self->counter(1,$length);
+        }
+        return $res;
     }
 
     my $res = $self->app->($env);
     
     Plack::Util::response_cb($res, sub {
-	my $res = shift;
-	my $length;
+        my $res = shift;
+        my $length;
         return sub {
             my $chunk = shift;
             if ( ! defined $chunk ) {
-		if ( $self->counter_file ) {
-		    $self->counter(1,$length);
-		}
-		undef $guard;
-		return;
-	    }
-	    $length += length($chunk); 
+                if ( $self->counter_file ) {
+                    $self->counter(1,$length);
+                }
+                undef $guard;
+                return;
+            }
+            $length += length($chunk); 
             return $chunk;
-	};
+        };
     });
 }
 
@@ -113,11 +113,11 @@ sub _handle_server_status {
 
     if ( $self->counter_file ) {
         my ($counter,$bytes) = $self->counter;
-	my $kbytes = int($bytes / 1_000);
+        my $kbytes = int($bytes / 1_000);
         $body .= sprintf "Total Accesses: %s\n", $counter;
-	$body .= sprintf "Total Kbytes: %s\n", $kbytes;
+        $body .= sprintf "Total Kbytes: %s\n", $kbytes;
         $stats{TotalAccesses} = $counter;
-	$stats{TotalKbytes} = $kbytes;
+        $stats{TotalKbytes} = $kbytes;
     }
 
     if ( my $scoreboard = $self->{__scoreboard} ) {
@@ -202,23 +202,23 @@ sub counter {
         flock $fh, LOCK_UN;
     }
     if ( @_ ) {
-	my ($count, $bytes) = @_;
-	$count ||= 1;
-	$bytes ||= 0;
+        my ($count, $bytes) = @_;
+        $count ||= 1;
+        $bytes ||= 0;
         my $fh = $self->{__counter};
         flock $fh, LOCK_EX;
         seek $fh, 10, 0;
         sysread $fh, my $buf, 40;
-	my $counter = substr($buf, 0, 20);
-	my $total_bytes = substr($buf, 20, 20);
-	$counter ||= 0;
-	$total_bytes ||= 0;
+        my $counter = substr($buf, 0, 20);
+        my $total_bytes = substr($buf, 20, 20);
+        $counter ||= 0;
+        $total_bytes ||= 0;
         $counter += $count;
-	if ($total_bytes + $bytes > 2**53){ # see docs
-	    $total_bytes = 0;
-	} else {
-	    $total_bytes += $bytes;
-	}
+        if ($total_bytes + $bytes > 2**53){ # see docs
+            $total_bytes = 0;
+        } else {
+            $total_bytes += $bytes;
+        }
         seek $fh, 0, 0;
         syswrite $fh, sprintf("%-10d%-20d%-20d", $parent_pid, $counter, $total_bytes);
         flock $fh, LOCK_UN;
@@ -229,7 +229,7 @@ sub counter {
         flock $fh, LOCK_EX;
         seek $fh, 10, 0;
         sysread $fh, my $counter, 20;
-	sysread $fh, my $total_bytes, 20;
+        sysread $fh, my $total_bytes, 20;
         flock $fh, LOCK_UN;
         return $counter + 0, $total_bytes + 0;
     }
