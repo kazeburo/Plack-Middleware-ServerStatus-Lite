@@ -6,10 +6,6 @@ use Plack::Builder;
 use Plack::Loader;
 use File::Temp;
 
-if ( ! eval { require Cache::FastMmap; 1 } ) {
-    plan skip_all => 'Cache::FastMmap isnot installed';
-}
-
 my @servers;
 for my $server ( qw/Starman Starlet/ ) {
     my $installed = 0;
@@ -25,7 +21,7 @@ if ( !@servers ) {
     plan skip_all => 'Starlet or Starman isnot installed';
 }
 else {
-    plan tests => scalar @servers;
+    plan tests => 2 * scalar @servers;
 }
 
 for my $server ( @servers ) {
@@ -54,8 +50,9 @@ for my $server ( @servers ) {
             }
 
             my $res = $ua->get("http://localhost:$port/server-status");
-            my $accesss = $max+1;
+            my $accesss = $max;
             like $res->content, qr/Total Accesses: $accesss/;
+	    like $res->content, qr/Total Kbytes: \d/;
         },
         server => sub {
             my $port = shift;

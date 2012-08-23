@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use parent qw(Plack::Middleware);
 use Plack::Util::Accessor qw(scoreboard path allow counter_file);
+use Plack::Util;
 use Parallel::Scoreboard;
 use Net::CIDR::Lite;
 use Try::Tiny;
@@ -37,47 +38,38 @@ sub call {
     my ($self, $env) = @_;
 
     $self->set_state("A", $env);
+    my $back_state = sub {
+	$self->set_state("_");
+    };
+    my $guard = bless $back_state, 'Plack::Middleware::ServerStatus::Lite::Guard';
 
-    if ( $self->counter_file ) {
-        $self->counter(1);
+    if( $self->path && $env->{PATH_INFO} eq $self->path ) {
+	my $res = $self->_handle_server_status($env);
+	if ( $self->counter_file ) {
+	    my $length = Plack::Util::content_length($res->[2]);
+	    $self->counter(1,$length);
+	}
+	return $res;
     }
 
-    my $res;
-    try {
-        if( $self->path && $env->{PATH_INFO} eq $self->path ) {
-            $res = $self->_handle_server_status($env);
-            $self->set_state("_");
-        }
-        else {
-            my $app_res = $self->app->($env);
-
-            if ( ref $app_res eq 'ARRAY' ) {
-                $res = $app_res;
-                $self->set_state("_");
-            }
-            else {
-                $res = sub {
-                    my $respond = shift;
-
-                    my $writer;
-                    try {
-                        $app_res->(sub { return $writer = $respond->(@_) });
-                    } catch {
-                        if ($writer) {
-                            $writer->close;
-                        }
-                        die $_;
-                    } finally {
-                        $self->set_state("_");
-                    };
-                };
-            }
-        }
-    } catch {
-        $self->set_state("_");
-        die $_;
-    };
-    return $res;
+    my $res = $self->app->($env);
+    
+    Plack::Util::response_cb($res, sub {
+	my $res = shift;
+	my $length;
+        return sub {
+            my $chunk = shift;
+            if ( ! defined $chunk ) {
+		if ( $self->counter_file ) {
+		    $self->counter(1,$length);
+		}
+		undef $guard;
+		return;
+	    }
+	    $length += length($chunk); 
+            return $chunk;
+	};
+    });
 }
 
 my $prev='';
@@ -120,9 +112,12 @@ sub _handle_server_status {
     my %stats = ( 'Uptime' => $self->{uptime} );
 
     if ( $self->counter_file ) {
-        my $counter = $self->counter;
+        my ($counter,$bytes) = $self->counter;
+	my $kbytes = int($bytes / 1_000);
         $body .= sprintf "Total Accesses: %s\n", $counter;
+	$body .= sprintf "Total Kbytes: %s\n", $kbytes;
         $stats{TotalAccesses} = $counter;
+	$stats{TotalKbytes} = $kbytes;
     }
 
     if ( my $scoreboard = $self->{__scoreboard} ) {
@@ -202,18 +197,30 @@ sub counter {
         my $len = sysread $fh, my $buf, 10;
         if ( !$len || $buf != $parent_pid ) {
             seek $fh, 0, 0;
-            syswrite $fh, sprintf("%-10d%-20d", $parent_pid, 0);
+            syswrite $fh, sprintf("%-10d%-20d%-20d", $parent_pid, 0, 0);
         } 
         flock $fh, LOCK_UN;
     }
     if ( @_ ) {
+	my ($count, $bytes) = @_;
+	$count ||= 1;
+	$bytes ||= 0;
         my $fh = $self->{__counter};
         flock $fh, LOCK_EX;
         seek $fh, 10, 0;
-        sysread $fh, my $counter, 20;
-        $counter++;
+        sysread $fh, my $buf, 40;
+	my $counter = substr($buf, 0, 20);
+	my $total_bytes = substr($buf, 20, 20);
+	$counter ||= 0;
+	$total_bytes ||= 0;
+        $counter += $count;
+	if ($total_bytes + $bytes > 2**53){ # see docs
+	    $total_bytes = 0;
+	} else {
+	    $total_bytes += $bytes;
+	}
         seek $fh, 0, 0;
-        syswrite $fh, sprintf("%-10d%-20d", $parent_pid, $counter);
+        syswrite $fh, sprintf("%-10d%-20d%-20d", $parent_pid, $counter, $total_bytes);
         flock $fh, LOCK_UN;
         return $counter;
     }
@@ -222,12 +229,23 @@ sub counter {
         flock $fh, LOCK_EX;
         seek $fh, 10, 0;
         sysread $fh, my $counter, 20;
+	sysread $fh, my $total_bytes, 20;
         flock $fh, LOCK_UN;
-        return $counter + 0;
+        return $counter + 0, $total_bytes + 0;
     }
 }
 
 1;
+
+package 
+    Plack::Middleware::ServerStatus::Lite::Guard;
+
+sub DESTROY {
+    $_[0]->();
+}
+
+1;
+
 __END__
 
 =head1 NAME
