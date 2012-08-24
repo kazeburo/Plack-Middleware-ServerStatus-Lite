@@ -324,6 +324,13 @@ Enable Total Access counter
 
 =back
 
+=head1 TOTAL BYTES
+
+The largest integer that 32-bit Perl can store without loss of precision
+is 2**53. So rather than getting all fancy with Math::BigInt, we're just
+going to be conservative and wrap that around to 0. That's enough to count
+1 GB per second for a hundred days.
+
 =head1 WHAT DOES "SS" MEAN IN STATUS
 
 Seconds since beginning of most recent request
