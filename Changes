@@ -1,5 +1,9 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.08   Fri Aug 24 17:35:24 2012
+        - allow counting of bytes sent (Thanks kgoess)
+        - changed to use Plack::Util::response_cb
+
 0.07   Fri Jun 1 13:20:17 2012
         - display "Total Accesses" and "Seconds since beginning of most recent request"
           original idea by smly
