@@ -6,6 +6,9 @@ use Plack::Builder;
 use Plack::Loader;
 use File::Temp;
 
+my $body = "Hello World" x 2048;
+my $body_len = length $body;
+
 my @servers;
 for my $server ( qw/Starman Starlet/ ) {
     my $installed = 0;
@@ -36,7 +39,7 @@ for my $server ( @servers ) {
             allow=>'0.0.0.0/0',
             scoreboard => $dir,
             counter_file => $filename;
-        sub { [200, [ 'Content-Type' => 'text/plain' ], [ "Hello World" ]] };
+        sub { [200, [ 'Content-Type' => 'text/plain' ], [ $body ]] };
     };
 
     test_tcp(
@@ -52,7 +55,8 @@ for my $server ( @servers ) {
             my $res = $ua->get("http://localhost:$port/server-status");
             my $accesss = $max;
             like $res->content, qr/Total Accesses: $accesss/;
-	    like $res->content, qr/Total Kbytes: \d/;
+            my $kbyte = int( $body_len * $accesss / 1_000 );
+            like $res->content, qr/Total Kbytes: $kbyte/;
         },
         server => sub {
             my $port = shift;
