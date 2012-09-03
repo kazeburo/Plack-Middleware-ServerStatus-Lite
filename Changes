@@ -1,5 +1,8 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.09   Mon Sep 3 16:21:44 2012
+        - added skip_ps_command option for systems does not have /proc
+
 0.08   Fri Aug 24 17:35:24 2012
         - allow counting of bytes sent (Thanks kgoess)
         - changed to use Plack::Util::response_cb
