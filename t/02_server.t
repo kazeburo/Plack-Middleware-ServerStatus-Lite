@@ -73,6 +73,7 @@ for my $server ( @servers ) {
                 );
             }
             $loader->run($app);
+            exit;
         },
     );
 }
