@@ -1,5 +1,9 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.10   Mon Jan 28 14:04:48 2012
+       - don't use response_cb if response is ArrayRef.
+         response_cb removes Content-Length header.
+
 0.09   Mon Sep 3 16:21:44 2012
         - added skip_ps_command option for systems does not have /proc
 
