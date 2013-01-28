@@ -53,7 +53,14 @@ sub call {
     }
 
     my $res = $self->app->($env);
-    
+    if ( ref $res && ref $res eq 'ARRAY' ) {
+        if ( $self->counter_file ) {
+            my $length = Plack::Util::content_length($res->[2]);
+            $self->counter(1,$length);
+        }
+        undef $guard;
+        return $res;
+    }
     Plack::Util::response_cb($res, sub {
         my $res = shift;
         my $length;
