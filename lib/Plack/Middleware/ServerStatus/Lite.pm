@@ -136,7 +136,7 @@ sub _handle_server_status {
         my @all_workers;
         if ( ! $self->skip_ps_command ) {
             my $parent_pid = getppid;
-            my $psopt = $^O =~ m/^freebsd$/ ? '-ax' : '-e';
+            my $psopt = $^O =~ m/bsd$/ ? '-ax' : '-e';
             my $ps = `LC_ALL=C command ps $psopt -o ppid,pid`;
             $ps =~ s/^\s+//mg;
 
