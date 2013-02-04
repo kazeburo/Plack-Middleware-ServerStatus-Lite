@@ -31,7 +31,7 @@ for my $server ( @servers ) {
 
     my $dir = File::Temp::tempdir( CLEANUP => 1 );
     my $app = builder {
-        enable 'ServerStatus::Lite', path => '/server-status', allow=>'0.0.0.0/0', scoreboard => $dir;
+        enable 'ServerStatus::Lite', path => '/server-status', allow=>[ '0.0.0.0/0', '::/0' ], scoreboard => $dir;
         sub { sleep 3; [200, [ 'Content-Type' => 'text/plain' ], [ "Hello World" ]] };
     };
 
