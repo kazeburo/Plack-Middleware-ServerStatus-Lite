@@ -38,7 +38,7 @@ for my $server ( @servers ) {
     my $app = builder {
         enable 'ServerStatus::Lite', 
             path => '/server-status',
-            allow=>'0.0.0.0/0',
+            allow=> [ '0.0.0.0/0', '::/0' ],
             scoreboard => $dir,
             counter_file => $filename;
         sub {

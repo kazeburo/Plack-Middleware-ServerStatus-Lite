@@ -19,10 +19,19 @@ sub prepare_app {
     $self->{uptime} = time;
 
     if ( $self->allow ) {
-        my $cidr = Net::CIDR::Lite->new();
+        my $cidr4 = Net::CIDR::Lite->new();
+        my $cidr6 = Net::CIDR::Lite->new();
         my @ip = ref $self->allow ? @{$self->allow} : ($self->allow);
-        $cidr->add_any( $_ ) for @ip;
-        $self->{__cidr} = $cidr;
+        for (@ip) {
+            # hacky check, but actual checks are done in Net::CIDR::Lite.
+            if (/:/) {
+                $cidr6->add_any($_);
+            } else {
+                $cidr4->add_any($_);
+            }
+        }
+        $self->{__cidr4} = $cidr4;
+        $self->{__cidr6} = $cidr6;
     }
 
     if ( $self->scoreboard ) {
@@ -196,8 +205,8 @@ EOF
 
 sub allowed {
     my ( $self , $address ) = @_;
-    return unless $self->{__cidr};
-    return $self->{__cidr}->find( $address );
+    return unless $self->{__cidr4};
+    return ($self->{__cidr4}->find( $address ) or $self->{__cidr6}->find( $address ));
 }
 
 sub counter {

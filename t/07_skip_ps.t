@@ -32,7 +32,7 @@ for my $server ( @servers ) {
     my $app = builder {
         enable 'ServerStatus::Lite',
             path => '/server-status',
-            allow=>'0.0.0.0/0', 
+            allow=> [ '0.0.0.0/0', '::/0' ],
             scoreboard => $dir,
             skip_ps_command => 1;
         sub { sleep 3; [200, [ 'Content-Type' => 'text/plain' ], [ "Hello World" ]] };
