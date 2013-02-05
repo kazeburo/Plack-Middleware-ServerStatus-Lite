@@ -12,7 +12,7 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 sub prepare_app {
     my $self = shift;
@@ -331,7 +331,7 @@ location that displays server status
   allow => '127.0.0.1'
   allow => ['192.168.0.0/16', '10.0.0.0/8']
 
-host based access control of a page of server status
+host based access control of a page of server status. supports IPv6 address.
 
 =item scoreboard
 

@@ -1,6 +1,11 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
-0.10   Mon Jan 28 14:04:48 2012
+0.11   Tue Feb 5 11:46:55 2013
+       - uses 'ps -ax' instead of "-e" in *BSD os
+       - supports IPv6 
+         (Thanks kuriyama-san) 
+
+0.10   Mon Jan 28 14:04:48 2013
        - don't use response_cb if response is ArrayRef.
          response_cb removes Content-Length header.
 
