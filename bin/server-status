@@ -40,7 +40,6 @@ server-status - a script to show the status of the local server
 
   % server-status --skip-ps --scoreboard server-status --counter server-status/access-counter
 
-  Uptime: 1234567789
   Total Accesses: 123
   BusyWorkers: 2
   IdleWorkers: 3
@@ -54,7 +53,7 @@ server-status - a script to show the status of the local server
 
   # JSON format
   % server-status --json --skip-ps --counter ~/server-status/access-counter
-  {"Uptime":"1332476669","BusyWorkers":"2",
+  {"BusyWorkers":"2",
    "stats":[
      {"protocol":null,"remote_addr":null,"pid":"78639",
       "status":".","method":null,"uri":null,"host":null,"ss":null},
