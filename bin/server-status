@@ -1,0 +1,110 @@
+use strict;
+use warnings;
+
+use Plack::Middleware::ServerStatus::Lite;
+use HTTP::Request::Common;
+use HTTP::Response;
+use HTTP::Message::PSGI;
+use Getopt::Long 2.38;
+
+my ($scoreboard, $counter, $skip_ps, $json);
+GetOptions(
+    'scoreboard=s' => \$scoreboard,
+    'counter|counter_file=s' => \$counter,
+    'skip_ps|skip-ps' => \$skip_ps,
+    'json' => \$json,
+);
+
+my $app = Plack::Middleware::ServerStatus::Lite->wrap(sub {},
+    path => '/server-status',
+    allow => [ '127.0.0.1' ],
+    scoreboard => $scoreboard,
+    defined($counter) ? (counter_file => $counter) : (),
+    skip_ps_command => $skip_ps,
+);
+
+my $res = res_from_psgi($app->(GET('/server-status' . ($json ? '?json' : ''))->to_psgi));
+my $data = $res->content;
+
+# remove uptime data, as it's not accurate
+$data =~ s/^Uptime: .*$//m;
+print $data;
+
+__END__
+
+=head1 NAME
+
+server-status - a script to show the status of the local server
+
+=head1 SYNOPSIS
+
+  % server-status --skip-ps --scoreboard server-status --counter server-status/access-counter
+
+  Uptime: 1234567789
+  Total Accesses: 123
+  BusyWorkers: 2
+  IdleWorkers: 3
+  --
+  pid status remote_addr host method uri protocol ss
+  20060 A 127.0.0.1 localhost:10001 GET / HTTP/1.1 1
+  20061 .
+  20062 A 127.0.0.1 localhost:10001 GET /server-status HTTP/1.1 0
+  20063 .
+  20064 .
+
+  # JSON format
+  % server-status --json --skip-ps --counter ~/server-status/access-counter
+  {"Uptime":"1332476669","BusyWorkers":"2",
+   "stats":[
+     {"protocol":null,"remote_addr":null,"pid":"78639",
+      "status":".","method":null,"uri":null,"host":null,"ss":null},
+     {"protocol":"HTTP/1.1","remote_addr":"127.0.0.1","pid":"78640",
+      "status":"A","method":"GET","uri":"/","host":"localhost:10226","ss":0},
+     ...
+  ],"IdleWorkers":"3"}
+
+=head1 DESCRIPTION
+
+This is a simple command-line script that examines the local server status
+files to report on the status of a locally-running server, without incurring
+any network overhead nor using a worker.
+
+=head1 OPTIONS
+
+=over 4
+
+=item scoreboard
+
+Required - same as the C<scoreboard> option in the middleware.
+
+=item counter_file
+
+Optional - same as the C<counter_file> option in the middleware.
+
+=item skip_ps
+
+Optional - same as the C<skip_ps_command> option in the middleware.
+Defaults to false.
+
+=item json
+
+Optional - when provided, returns the data in JSON format.
+Defaults to false.
+
+=back
+
+=head1 AUTHOR
+
+Karen Etheridge E<lt>ether {at} cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Plack::Middleware::ServerStatus::Lite>
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
