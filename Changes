@@ -1,5 +1,7 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+       - new server-status script (Karen Etheridge)
+
 0.11   Tue Feb 5 11:46:55 2013
        - uses 'ps -ax' instead of "-e" in *BSD os
        - supports IPv6 

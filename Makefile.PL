@@ -10,6 +10,12 @@ requires 'Try::Tiny', 0.09;
 requires 'Parallel::Scoreboard', 0.02;
 requires 'JSON';
 
+# for for bin/server-status
+recommends 'HTTP::Request::Common';
+recommends 'HTTP::Response';
+recommends 'HTTP::Message::PSGI';
+recommends 'Getopt::Long', '2.38';
+
 tests 't/*.t';
 author_tests 'xt';
 
