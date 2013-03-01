@@ -7,11 +7,10 @@ use HTTP::Response;
 use HTTP::Message::PSGI;
 use Getopt::Long 2.38;
 
-my ($scoreboard, $counter, $skip_ps, $json);
+my ($scoreboard, $counter, $json);
 GetOptions(
     'scoreboard=s' => \$scoreboard,
     'counter|counter_file=s' => \$counter,
-    'skip_ps|skip-ps' => \$skip_ps,
     'json' => \$json,
 );
 
@@ -20,7 +19,7 @@ my $app = Plack::Middleware::ServerStatus::Lite->wrap(sub {},
     allow => [ '127.0.0.1' ],
     scoreboard => $scoreboard,
     defined($counter) ? (counter_file => $counter) : (),
-    skip_ps_command => $skip_ps,
+    skip_ps_command => 1,
 );
 
 my $res = res_from_psgi($app->(GET('/server-status' . ($json ? '?json' : ''))->to_psgi));
@@ -38,7 +37,7 @@ server-status - a script to show the status of the local server
 
 =head1 SYNOPSIS
 
-  % server-status --skip-ps --scoreboard server-status --counter server-status/access-counter
+  % server-status --scoreboard server-status --counter server-status/access-counter
 
   Total Accesses: 123
   BusyWorkers: 2
@@ -52,7 +51,7 @@ server-status - a script to show the status of the local server
   20064 .
 
   # JSON format
-  % server-status --json --skip-ps --counter ~/server-status/access-counter
+  % server-status --json --counter ~/server-status/access-counter
   {"BusyWorkers":"2",
    "stats":[
      {"protocol":null,"remote_addr":null,"pid":"78639",
@@ -80,17 +79,20 @@ Required - same as the C<scoreboard> option in the middleware.
 
 Optional - same as the C<counter_file> option in the middleware.
 
-=item skip_ps
-
-Optional - same as the C<skip_ps_command> option in the middleware.
-Defaults to false.
-
 =item json
 
 Optional - when provided, returns the data in JSON format.
 Defaults to false.
 
 =back
+
+=head1 CAVEATS
+
+This script mirrors the middleware's behaviour when the C<skip_ps_command>
+option is set, because currently we do not know the server's  parent pid (the
+process where the middleware was originally loaded, before worker processes
+are forked off).  Therefore, data will be incomplete if not every worker has
+yet serviced a request before this script is run.
 
 =head1 AUTHOR
 
