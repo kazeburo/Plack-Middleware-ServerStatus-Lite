@@ -8,7 +8,7 @@ requires 'Plack::Middleware';
 requires 'Net::CIDR::Lite';
 requires 'Try::Tiny', 0.09;
 requires 'Parallel::Scoreboard', 0.02;
-requires 'JSON';
+requires 'JSON' => '2.53';
 
 tests 't/*.t';
 author_tests 'xt';

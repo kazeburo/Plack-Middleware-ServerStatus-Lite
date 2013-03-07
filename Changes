@@ -1,5 +1,8 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+0.12   Thu Mar 7 9:24:24 2013
+       - requires JSON 2.xx 
+
 0.11   Tue Feb 5 11:46:55 2013
        - uses 'ps -ax' instead of "-e" in *BSD os
        - supports IPv6 
