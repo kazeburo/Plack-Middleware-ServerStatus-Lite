@@ -197,6 +197,7 @@ IdleWorkers: $idle
 pid status remote_addr host method uri protocol ss
 $raw_stats
 EOF
+        chomp $body;
         $stats{BusyWorkers} = $busy;
         $stats{IdleWorkers} = $idle;
         $stats{stats} = \@raw_stats;
