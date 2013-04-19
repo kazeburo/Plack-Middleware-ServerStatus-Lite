@@ -2,6 +2,12 @@ Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.13 2013-04-19T01:26:53Z
+
+       - re-package with Minilla
+       - refactor around IPv6 cidr check
+       - (status page) remove a blank line at the bottom
+
 0.12   Thu Mar 7 9:24:24 2013
        - requires JSON 2.xx 
 
