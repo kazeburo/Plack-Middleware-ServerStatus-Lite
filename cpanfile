@@ -5,8 +5,9 @@ requires 'Plack::Middleware';
 requires 'Try::Tiny', '0.09';
 requires 'parent';
 
-on build => sub {
-    requires 'ExtUtils::MakeMaker', '6.36';
+on 'test' => sub {
     requires 'Test::More';
     requires 'Test::TCP';
 };
+
+

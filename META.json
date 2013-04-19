@@ -24,13 +24,6 @@
       ]
    },
    "prereqs" : {
-      "build" : {
-         "requires" : {
-            "ExtUtils::MakeMaker" : "6.36",
-            "Test::More" : "0",
-            "Test::TCP" : "0"
-         }
-      },
       "configure" : {
          "requires" : {
             "CPAN::Meta" : "0",
@@ -55,6 +48,12 @@
             "Plack::Middleware" : "0",
             "Try::Tiny" : "0.09",
             "parent" : "0"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::More" : "0",
+            "Test::TCP" : "0"
          }
       }
    },
