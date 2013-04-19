@@ -14,3 +14,9 @@ MANIFEST.bak
 MYMETA.json
 
 MYMETA.yml
+/Plack-Middleware-ServerStatus-Lite-*
+/.build
+/_build_params
+/Build
+!Build/
+!META.json

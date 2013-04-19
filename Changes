@@ -1,5 +1,7 @@
 Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
+{{$NEXT}}
+
 0.12   Thu Mar 7 9:24:24 2013
        - requires JSON 2.xx 
 

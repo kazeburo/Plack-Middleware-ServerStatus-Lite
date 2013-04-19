@@ -1,0 +1,80 @@
+{
+   "abstract" : "show server status like Apache's mod_status",
+   "author" : [
+      "Masahiro Nagano <kazeburo {at} gmail.com>"
+   ],
+   "dynamic_config" : 0,
+   "generated_by" : "Minilla/v0.0.53, CPAN::Meta::Converter version 2.130880",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Plack-Middleware-ServerStatus-Lite",
+   "no_index" : {
+      "directory" : [
+         "t",
+         "xt",
+         "inc",
+         "share",
+         "eg",
+         "examples"
+      ]
+   },
+   "prereqs" : {
+      "build" : {
+         "requires" : {
+            "ExtUtils::MakeMaker" : "6.36",
+            "Test::More" : "0",
+            "Test::TCP" : "0"
+         }
+      },
+      "configure" : {
+         "requires" : {
+            "CPAN::Meta" : "0",
+            "CPAN::Meta::Prereqs" : "0",
+            "Module::Build" : "0.38"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "Pod::Wordlist::hanekomu" : "0",
+            "Test::CPAN::Meta" : "0",
+            "Test::MinimumVersion" : "0.10108",
+            "Test::Pod" : "1.41",
+            "Test::Spelling" : "0"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "JSON" : "2.53",
+            "Net::CIDR::Lite" : "0",
+            "Parallel::Scoreboard" : "0.02",
+            "Plack::Middleware" : "0",
+            "Try::Tiny" : "0.09",
+            "parent" : "0"
+         }
+      }
+   },
+   "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues"
+      },
+      "homepage" : "https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite.git",
+         "web" : "https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite"
+      }
+   },
+   "version" : "0.12",
+   "x_contributors" : [
+      "Jakob Voss <voss@gbv.de>",
+      "Masahiro Chiba <chiba@everqueue.com>",
+      "Jun Kuriyama <kuriyama@s2factory.co.jp>",
+      "Masahiro Nagano <kazeburo@gmail.com>"
+   ]
+}
