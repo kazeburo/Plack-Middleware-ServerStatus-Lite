@@ -1,4 +1,6 @@
 language: perl
+before_install:
+  - cpanm -n Starman Starlet
 perl:
   - 5.16
   - 5.14
