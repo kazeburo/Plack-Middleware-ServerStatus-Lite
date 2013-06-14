@@ -7,8 +7,9 @@ requires 'parent';
 
 on 'test' => sub {
     requires 'Test::More';
-    requires 'Test::TCP';
+    requires 'Test::TCP', '2.00';
     requires 'Starman', '0.3013';
+    requires 'LWP::UserAgent';
 };
 
 

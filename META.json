@@ -52,8 +52,10 @@
       },
       "test" : {
          "requires" : {
+            "LWP::UserAgent" : "0",
+            "Starman" : "0.3013",
             "Test::More" : "0",
-            "Test::TCP" : "0"
+            "Test::TCP" : "2.00"
          }
       }
    },
