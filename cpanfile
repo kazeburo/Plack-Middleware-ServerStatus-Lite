@@ -8,6 +8,7 @@ requires 'parent';
 on 'test' => sub {
     requires 'Test::More';
     requires 'Test::TCP';
+    requires 'Starman', '0.3013';
 };
 
 
