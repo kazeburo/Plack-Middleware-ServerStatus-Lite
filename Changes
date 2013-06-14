@@ -2,6 +2,11 @@ Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.14 2013-06-14T07:46:44Z
+
+       - (experimental) drop skip_ps_command opt. Maybe it's not used
+       - support cygwin
+
 0.13 2013-04-19T01:26:53Z
 
        - re-package with Minilla
