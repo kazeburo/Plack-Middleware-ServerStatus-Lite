@@ -3,7 +3,7 @@ package Plack::Middleware::ServerStatus::Lite;
 use strict;
 use warnings;
 use parent qw(Plack::Middleware);
-use Plack::Util::Accessor qw(scoreboard path allow counter_file);
+use Plack::Util::Accessor qw(scoreboard path allow counter_file skip_ps_command);
 use Plack::Util;
 use Parallel::Scoreboard;
 use Net::CIDR::Lite;
@@ -150,9 +150,13 @@ sub _handle_server_status {
         my $idle = 0;
         my $busy = 0;
 
-        my @all_workers;
+        my @all_workers = keys %$stats;
         my $parent_pid = getppid;
-        if ( $^O eq 'cygwin' ) {
+        
+        if ( $self->skip_ps_command ) {
+            # none
+        }
+        elsif ( $^O eq 'cygwin' ) {
             my $ps = `ps -ef`;
             $ps =~ s/^\s+//mg;
             for my $line ( split /\n/, $ps ) {
@@ -171,9 +175,6 @@ sub _handle_server_status {
                 my ($ppid, $pid) = split /\s+/, $line, 2;
                 push @all_workers, $pid if $ppid == $parent_pid;
             }
-        }
-        else {
-            @all_workers = keys %$stats;
         }
 
         my @raw_stats;
@@ -366,6 +367,15 @@ Scoreboard directory, Middleware::ServerStatus::Lite stores processes activity i
   counter_file => '/path/to/counter_file'
 
 Enable Total Access counter
+
+=item skip_ps_command
+
+  skip_ps_command => 1 or 0
+
+ServerStatus::Lite executes `ps command` to find all worker processes. But in some systems
+that does not mount "/proc" can not find any processes.
+IF 'skip_ps_command' is true, ServerStatus::Lite does not `ps`, and checks only processes that
+already did process requests.
 
 =back
 
