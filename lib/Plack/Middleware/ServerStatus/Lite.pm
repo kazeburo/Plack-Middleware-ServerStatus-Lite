@@ -402,6 +402,8 @@ Masahiro Nagano E<lt>kazeburo {at} gmail.comE<gt>
 
 Original ServerStatus by cho45 <http://github.com/cho45/Plack-Middleware-ServerStatus>
 
+L<Plack::Middleware::ServerStatus::Tiny>
+
 =head1 LICENSE
 
 This library is free software; you can redistribute it and/or modify
