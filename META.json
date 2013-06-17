@@ -71,7 +71,7 @@
          "web" : "https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite"
       }
    },
-   "version" : "0.14",
+   "version" : "0.15",
    "x_contributors" : [
       "Jakob Voss <voss@gbv.de>",
       "Masahiro Chiba <chiba@everqueue.com>",
