@@ -70,6 +70,15 @@ Plack::Middleware::ServerStatus::Lite is a middleware that display server status
 
     Enable Total Access counter
 
+- skip\_ps\_command
+
+        skip_ps_command => 1 or 0
+
+    ServerStatus::Lite executes \`ps command\` to find all worker processes. But in some systems
+    that does not mount "/proc" can not find any processes.
+    IF 'skip\_ps\_command' is true, ServerStatus::Lite does not \`ps\`, and checks only processes that
+    already did process requests.
+
 # TOTAL BYTES
 
 The largest integer that 32-bit Perl can store without loss of precision
