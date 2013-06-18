@@ -2,6 +2,10 @@ Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.16 2013-06-18T15:57:56Z
+
+       - non-trial release
+
 0.15 2013-06-17T02:40:30Z
 
        - re-add skip_ps_command see

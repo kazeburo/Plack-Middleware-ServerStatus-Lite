@@ -25,7 +25,7 @@ my %args = (
 
     name            => 'Plack-Middleware-ServerStatus-Lite',
     module_name     => 'Plack::Middleware::ServerStatus::Lite',
-    allow_pure_perl => 0,
+    allow_pureperl => 0,
 
     script_files => [glob('script/*'), glob('bin/*')],
 
