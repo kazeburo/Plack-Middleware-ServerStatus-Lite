@@ -4,7 +4,7 @@
       "Masahiro Nagano <kazeburo {at} gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.4.6, CPAN::Meta::Converter version 2.130880",
+   "generated_by" : "Minilla/v0.5.3, CPAN::Meta::Converter version 2.130880",
    "license" : [
       "perl_5"
    ],
@@ -76,6 +76,7 @@
       "Jakob Voss <voss@gbv.de>",
       "Masahiro Chiba <chiba@everqueue.com>",
       "Jun Kuriyama <kuriyama@s2factory.co.jp>",
+      "Karen Etheridge <ether@cpan.org>",
       "Masahiro Nagano <kazeburo@gmail.com>"
    ]
 }

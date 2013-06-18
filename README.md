@@ -98,6 +98,8 @@ Masahiro Nagano <kazeburo {at} gmail.com>
 
 Original ServerStatus by cho45 <http://github.com/cho45/Plack-Middleware-ServerStatus>
 
+[Plack::Middleware::ServerStatus::Tiny](http://search.cpan.org/perldoc?Plack::Middleware::ServerStatus::Tiny)
+
 # LICENSE
 
 This library is free software; you can redistribute it and/or modify
