@@ -24,7 +24,7 @@ if ( !@servers ) {
     plan skip_all => 'Starlet or Starman isnot installed';
 }
 else {
-    plan tests => 2 * scalar @servers;
+    plan tests => 16 * scalar @servers;
 }
 
 for my $server ( @servers ) {
@@ -49,7 +49,8 @@ for my $server ( @servers ) {
             my $ua = LWP::UserAgent->new;
             my $max = 14;
             for ( 1..$max ) {
-                $ua->get("http://localhost:$port/");
+                my $res = $ua->get("http://localhost:$port/");
+                is($res->content, $body);
             }
 
             my $res = $ua->get("http://localhost:$port/server-status");

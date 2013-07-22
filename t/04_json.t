@@ -22,7 +22,7 @@ if ( !@servers ) {
     plan skip_all => 'Starlet or Starman isnot installed';
 }
 else {
-    plan tests => 5 * scalar @servers;
+    plan tests => 6 * scalar @servers;
 }
 
 
@@ -57,6 +57,7 @@ for my $server ( @servers ) {
                 # slow response
                 my $ua = LWP::UserAgent->new;
                 my $res = $ua->get("http://localhost:$port/");
+                is($res->content, 'Hello World');
                 exit;
             }
             waitpid( $pid, 0);
