@@ -2,6 +2,10 @@ Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.18 2013-07-22T06:39:12Z
+
+       - add more tests. check response body
+
 0.17 2013-07-22T06:25:23Z
 
        - requires Parallel::Scoreboard >= 0.03
