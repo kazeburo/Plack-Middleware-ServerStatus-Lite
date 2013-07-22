@@ -2,6 +2,11 @@ Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.17 2013-07-22T06:25:23Z
+
+       - requires Parallel::Scoreboard >= 0.03
+       - check body in response_cb for delayed and normal response
+
 0.16 2013-06-18T15:57:56Z
 
        - non-trial release

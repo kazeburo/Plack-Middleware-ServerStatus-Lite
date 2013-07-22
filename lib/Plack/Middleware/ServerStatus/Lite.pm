@@ -12,7 +12,7 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 sub prepare_app {
     my $self = shift;
