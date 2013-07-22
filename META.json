@@ -4,7 +4,7 @@
       "Masahiro Nagano <kazeburo {at} gmail.com>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v0.5.3, CPAN::Meta::Converter version 2.130880",
+   "generated_by" : "Minilla/v0.5.6, CPAN::Meta::Converter version 2.130880",
    "license" : [
       "perl_5"
    ],
@@ -44,7 +44,7 @@
          "requires" : {
             "JSON" : "2.53",
             "Net::CIDR::Lite" : "0",
-            "Parallel::Scoreboard" : "0.02",
+            "Parallel::Scoreboard" : "0.03",
             "Plack::Middleware" : "0",
             "Try::Tiny" : "0.09",
             "parent" : "0"
