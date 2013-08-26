@@ -2,6 +2,11 @@ Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.19 2013-08-26T05:03:32Z
+
+       - add warnings when 'allow' is missing.
+         https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues/12
+
 0.18 2013-07-22T06:39:12Z
 
        - add more tests. check response body
