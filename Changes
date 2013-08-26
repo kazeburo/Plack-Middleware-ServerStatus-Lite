@@ -1,81 +1,94 @@
-Revision history for Perl extension Plack::Middleware::ServerStatus::Lite
+Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
 0.19 2013-08-26T05:03:32Z
 
-       - add warnings when 'allow' is missing.
-         https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues/12
+   - add warnings when 'allow' is missing.
+     https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues/12
 
 0.18 2013-07-22T06:39:12Z
 
-       - add more tests. check response body
+   - add more tests. check response body
 
 0.17 2013-07-22T06:25:23Z
 
-       - requires Parallel::Scoreboard >= 0.03
-       - check body in response_cb for delayed and normal response
+   - requires Parallel::Scoreboard >= 0.03
+   - check body in response_cb for delayed and normal response
 
 0.16 2013-06-18T15:57:56Z
 
-       - non-trial release
+   - non-trial release
 
 0.15 2013-06-17T02:40:30Z
 
-       - re-add skip_ps_command see
-         https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues/10
+   - re-add skip_ps_command see
+     https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite/issues/10
 
 0.14 2013-06-14T07:46:44Z
 
-       - (experimental) drop skip_ps_command opt. Maybe it's not used
-       - support cygwin
+   - (experimental) drop skip_ps_command opt. Maybe it's not used
+   - support cygwin
 
 0.13 2013-04-19T01:26:53Z
 
-       - re-package with Minilla
-       - refactor around IPv6 cidr check
-       - (status page) remove a blank line at the bottom
+   - re-package with Minilla
+   - refactor around IPv6 cidr check
+   - (status page) remove a blank line at the bottom
 
-0.12   Thu Mar 7 9:24:24 2013
-       - requires JSON 2.xx 
+0.12 2013-03-07 09:24:24
 
-0.11   Tue Feb 5 11:46:55 2013
-       - uses 'ps -ax' instead of "-e" in *BSD os
-       - supports IPv6 
-         (Thanks kuriyama-san) 
+   - requires JSON 2.xx 
 
-0.10   Mon Jan 28 14:04:48 2013
-       - don't use response_cb if response is ArrayRef.
-         response_cb removes Content-Length header.
+0.11 2013-02-05 11:46:55
 
-0.09   Mon Sep 3 16:21:44 2012
-        - added skip_ps_command option for systems does not have /proc
+   - uses 'ps -ax' instead of "-e" in *BSD os
+   - supports IPv6 
+     (Thanks kuriyama-san) 
 
-0.08   Fri Aug 24 17:35:24 2012
-        - allow counting of bytes sent (Thanks kgoess)
-        - changed to use Plack::Util::response_cb
+0.10 2013-01-28 14:04:48
 
-0.07   Fri Jun 1 13:20:17 2012
-        - display "Total Accesses" and "Seconds since beginning of most recent request"
-          original idea by smly
+   - don't use response_cb if response is ArrayRef.
+     response_cb removes Content-Length header.
 
-0.06   Fri Mar 23 13:46:27 2012
-        - Support JSON format status
+0.09 2012-09-03 16:21:44
 
-0.05   Thu Feb 9 00:54:11 2012
-        - Some OS does not support ps "x" opt. uses "-e" instead of "x" 
+    - added skip_ps_command option for systems does not have /proc
 
-0.04    Wed Feb 8 10:04:32 2012
-        - added "x" opt for ps command. thanks wolfgang.
-          Without -x, the Server-Status will not work if the Server is started 
-          with eg. Server::Starter which detaches the processes 
-          from a controlling terminal.
+0.08 2012-08-24 17:35:24
 
-0.03    Mon Jan 16 10:09:50 2012
-        - Support delayed response. thanks nihen.
+    - allow counting of bytes sent (Thanks kgoess)
+    - changed to use Plack::Util::response_cb
 
-0.02    Thu Jan 5 10:03:51 2012
-        - Show uptime also in human-readble form. thanks nichtich.
+0.07 2012-06-01 13:20:17
 
-0.01    Thu Jul  1 11:00:13 2010
-        - original version
+    - display "Total Accesses" and "Seconds since beginning
+      of most recent request" original idea by smly
+
+0.06 2012-03-23 13:46:27
+
+    - Support JSON format status
+
+0.05 2012-02-09 00:54:11
+
+    - Some OS does not support ps "x" opt. uses "-e" instead of "x" 
+
+0.04 2012-02-08 10:04:32
+
+    - added "x" opt for ps command. thanks wolfgang.
+      Without -x, the Server-Status will not work if the Server is started 
+      with eg. Server::Starter which detaches the processes 
+      from a controlling terminal.
+
+0.03 2012-01-16 10:09:50
+
+    - Support delayed response. thanks nihen.
+
+0.02 2012-01-05 10:03:51
+
+    - Show uptime also in human-readble form. thanks nichtich.
+
+0.01 2010-07-01 11:00:13
+
+    - original version
+
