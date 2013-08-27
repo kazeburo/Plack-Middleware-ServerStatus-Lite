@@ -2,6 +2,10 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.20 2013-08-27T00:17:34Z
+
+   - Reformatted Changes file as per CPAN::Changes::Spec (Thank you neilbowers)
+
 0.19 2013-08-26T05:03:32Z
 
    - add warnings when 'allow' is missing.
