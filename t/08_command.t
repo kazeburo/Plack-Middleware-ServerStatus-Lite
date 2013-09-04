@@ -6,6 +6,7 @@ use Plack::Builder;
 use Plack::Loader;
 use File::Temp;
 use Capture::Tiny qw/capture/;
+use File::Spec;
 
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
 my ($fh, $filename) = File::Temp::tempfile( UNLINK=>1, EXLOCK=>0 );
@@ -33,7 +34,7 @@ test_tcp(
         if ( $pid ) {
             sleep 1;
             my ($stdout, $stderr, $exit) = capture {
-                system( $^X, './bin/server-status','--scoreboard',$dir,'--counter',$filename );
+                system( $^X, File::Spec->catfile('bin','server-status'),'--scoreboard',$dir,'--counter',$filename );
             };
             is $exit, 0, 'exit code';
             like $stdout, qr/IdleWorkers: 4/;
@@ -56,7 +57,7 @@ test_tcp(
         }
 
         my ($stdout, $stderr, $exit) = capture {
-            system( $^X, './bin/server-status','--scoreboard',$dir,'--counter',$filename );
+            system( $^X, File::Spec->catfile('bin','server-status'), '--scoreboard',$dir,'--counter',$filename );
         };
         is $exit, 0, 'exit code';
         my $accesss = $max +1;
