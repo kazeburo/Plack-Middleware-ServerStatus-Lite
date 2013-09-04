@@ -52,6 +52,7 @@
       },
       "test" : {
          "requires" : {
+            "Capture::Tiny" : "0",
             "LWP::UserAgent" : "0",
             "Starman" : "0.3013",
             "Test::More" : "0",
