@@ -1,0 +1,252 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Getopt::Long 2.38;
+use Pod::Usage;
+use JSON;
+use Parallel::Scoreboard;
+
+my $JSON = JSON->new->utf8(0);
+
+GetOptions(
+    'scoreboard=s' => \my $scoreboard_dir,
+    'counter|counter_file=s' => \my $counter_file,
+    'skip_ps_command' => \my $skip_ps_command,
+    'json' => \my $json,
+    'h|help' => \my $help,
+);
+pod2usage(1) if $help;
+
+if ( !$scoreboard_dir ) {
+    pod2usage(2);
+}
+
+opendir(my $dir, $scoreboard_dir) or die "couldnot open scoreboard directory: $!\n";
+undef $dir;
+
+my $scoreboard = Parallel::Scoreboard->new(
+   base_dir => $scoreboard_dir
+);
+my $stats = $scoreboard->read_all();
+
+if ( ! scalar %$stats ) {
+    print STDERR "There is no status file in scoreboard directory.\n";
+    print STDERR "Maybe all processes are idle state and do not serve any request yet.\n";
+    exit(2);
+}
+
+# check counter file
+my $counter_fh;
+if ( $counter_file ) {
+    open($counter_fh, $counter_file) or die "couldnot open counter file: $!\n";
+}
+
+my @all_workers = keys %$stats;
+my $pstatus = eval {
+    $JSON->decode($stats->{$all_workers[0]} || '{}');
+};
+
+if ( ! $pstatus->{ppid} || ! $pstatus->{uptime} || ! $pstatus->{ppid} ) {
+    print STDERR "status file does not have some necessary variables\n";
+    exit(2);
+}
+
+my $parent_pid = $pstatus->{ppid};
+
+my $upsince = time - $pstatus->{uptime};
+my $duration = "";
+my @spans = (86400 => 'days', 3600 => 'hours', 60 => 'minutes');
+while (@spans) {
+    my ($seconds,$unit) = (shift @spans, shift @spans);
+    if ($upsince > $seconds) {
+        $duration .= int($upsince/$seconds) . " $unit, ";
+        $upsince = $upsince % $seconds;
+    }
+}
+$duration .= "$upsince seconds";
+
+my $body="Uptime: ".$pstatus->{uptime}." ($duration)\n";
+my %status = ( 'Uptime' => $pstatus->{uptime} );
+
+if ( $counter_fh ) {
+    seek $counter_fh, 10, 0;
+    sysread $counter_fh, my $counter, 20;
+    sysread $counter_fh, my $total_bytes, 20;
+    $counter += 0;
+    $total_bytes += 0;
+    my $total_kbytes = int($total_bytes / 1_000);
+    $body .= sprintf "Total Accesses: %s\n", $counter;
+    $body .= sprintf "Total Kbytes: %s\n", $total_kbytes;
+    $status{TotalAccesses} = $counter;
+    $status{TotalKbytes} = $total_kbytes;
+}
+
+if ( $skip_ps_command ) {
+    # none
+}
+elsif ( $^O eq 'cygwin' ) {
+    @all_workers = ();
+    my $ps = `ps -ef`;
+    $ps =~ s/^\s+//mg;
+    for my $line ( split /\n/, $ps ) {
+        next if $line =~ m/^\D/;
+        my @proc = split /\s+/, $line;
+        push @all_workers, $proc[1] if $proc[2] == $parent_pid;
+    }
+}
+elsif ( $^O !~ m!mswin32!i ) {
+    @all_workers = ();
+    my $psopt = $^O =~ m/bsd$/ ? '-ax' : '-e';
+    my $ps = `LC_ALL=C command ps $psopt -o ppid,pid`;
+    $ps =~ s/^\s+//mg;
+    for my $line ( split /\n/, $ps ) {
+        next if $line =~ m/^\D/;
+        my ($ppid, $pid) = split /\s+/, $line, 2;
+        push @all_workers, $pid if $ppid == $parent_pid;
+    }
+}
+else {
+    # todo windows?
+}
+
+my $idle = 0;
+my $busy = 0;
+my $process_status = '';
+my @process_status;
+for my $pid ( @all_workers  ) {
+    my $json = $stats->{$pid};
+    my $pstatus = eval { 
+        $JSON->decode($json || '{}');
+    };
+    $pstatus ||= {};
+    if ( $pstatus->{status} && $pstatus->{status} eq 'A' ) {
+        $busy++;
+    }
+    else {
+        $idle++;
+    }
+    
+    if ( defined $pstatus->{time} ) {
+        $pstatus->{ss} = time - $pstatus->{time};
+    }
+    $pstatus->{pid} ||= $pid;
+    delete $pstatus->{time};
+    delete $pstatus->{ppid};
+    delete $pstatus->{uptime};
+    $process_status .= sprintf "%s\n", 
+        join(" ", map { defined $pstatus->{$_} ? $pstatus->{$_} : '' } qw/pid status remote_addr host method uri protocol ss/);
+    push @process_status, $pstatus;
+}
+
+$body .= <<EOF;
+BusyWorkers: $busy
+IdleWorkers: $idle
+--
+pid status remote_addr host method uri protocol ss
+$process_status
+EOF
+chomp $body;
+
+$status{BusyWorkers} = $busy;
+$status{IdleWorkers} = $idle;
+$status{stats} = \@process_status;
+
+if ( $json ) {
+    print $JSON->encode(\%status);
+}
+else {
+    print $body;
+}
+exit(0);
+
+__END__
+
+=head1 NAME
+
+server-status - a script to show the status of the local server
+
+=head1 SYNOPSIS
+
+  % server-status --scoreboard server-status --counter server-status/access-counter
+
+  Total Accesses: 123
+  BusyWorkers: 2
+  IdleWorkers: 3
+  --
+  pid status remote_addr host method uri protocol ss
+  20060 A 127.0.0.1 localhost:10001 GET / HTTP/1.1 1
+  20061 .
+  20062 A 127.0.0.1 localhost:10001 GET /server-status HTTP/1.1 0
+  20063 .
+  20064 .
+
+  # JSON format
+  % server-status --json --counter ~/server-status/access-counter
+  {"BusyWorkers":"2",
+   "stats":[
+     {"protocol":null,"remote_addr":null,"pid":"78639",
+      "status":".","method":null,"uri":null,"host":null,"ss":null},
+     {"protocol":"HTTP/1.1","remote_addr":"127.0.0.1","pid":"78640",
+      "status":"A","method":"GET","uri":"/","host":"localhost:10226","ss":0},
+     ...
+  ],"IdleWorkers":"3"}
+
+=head1 DESCRIPTION
+
+This is a simple command-line script that examines the local server status
+files to report on the status of a locally-running server, without incurring
+any network overhead nor using a worker.
+
+=head1 OPTIONS
+
+=over 4
+
+=item scoreboard
+
+Required - same as the C<scoreboard> option in the middleware.
+
+=item counter_file
+
+Optional - same as the C<counter_file> option in the middleware.
+
+=item json
+
+Optional - when provided, returns the data in JSON format.
+Defaults to false.
+
+=item skip_ps_command
+
+Optional - when provided, skip executes `ps command`.
+Please read perldoc L<Plack::Middleware::ServerStatus::Lite> for details
+
+=item help|h
+
+Display help
+
+=back
+
+=head1 CAVEATS
+
+This script mirrors the middleware's behaviour when the C<skip_ps_command>
+option is set, because currently we do not know the server's  parent pid (the
+process where the middleware was originally loaded, before worker processes
+are forked off).  Therefore, data will be incomplete if not every worker has
+yet serviced a request before this script is run.
+
+=head1 AUTHOR
+
+Karen Etheridge E<lt>ether {at} cpan.orgE<gt>
+Masahiro Nagano E<lt>kazeburo {at} cpan.orgE<gt>
+
+=head1 SEE ALSO
+
+L<Plack::Middleware::ServerStatus::Lite>
+
+=head1 LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+

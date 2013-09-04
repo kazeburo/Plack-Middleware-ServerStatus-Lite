@@ -10,6 +10,7 @@ on 'test' => sub {
     requires 'Test::TCP', '2.00';
     requires 'Starman', '0.3013';
     requires 'LWP::UserAgent';
+    requires 'Capture::Tiny';
 };
 
 

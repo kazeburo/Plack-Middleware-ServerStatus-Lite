@@ -14,6 +14,8 @@ use IO::Handle;
 
 our $VERSION = '0.20';
 
+my $JSON = JSON->new->utf8(0);
+
 sub prepare_app {
     my $self = shift;
     $self->{uptime} = time;
@@ -101,7 +103,7 @@ sub call {
     });
 }
 
-my $prev='';
+my $prev={};
 sub set_state {
     my $self = shift;
     return if !$self->{__scoreboard};
@@ -110,12 +112,22 @@ sub set_state {
     my $env = shift;
     if ( $env ) {
         no warnings 'uninitialized';
-        $prev = join(" ", $env->{REMOTE_ADDR}, $env->{HTTP_HOST} || '', 
-                          $env->{REQUEST_METHOD}, $env->{REQUEST_URI}, $env->{SERVER_PROTOCOL}, time);
+        $prev = {
+            remote_addr => $env->{REMOTE_ADDR},
+            host => defined $env->{HTTP_HOST} ? $env->{HTTP_HOST} : '-',
+            method => $env->{REQUEST_METHOD},
+            uri => $env->{REQUEST_URI},
+            protocol => $env->{SERVER_PROTOCOL},
+            time => time(),
+        };
     }
-    $self->{__scoreboard}->update(
-        sprintf("%s %s",$status, $prev)
-    );
+    $self->{__scoreboard}->update($JSON->encode({
+        %{$prev},
+        pid => $$,
+        ppid => getppid(),
+        uptime => $self->{uptime},
+        status => $status,
+    }));
 }
 
 sub _handle_server_status {
@@ -188,26 +200,28 @@ sub _handle_server_status {
         my $process_status = '';
         my @process_status;
         for my $pid ( @all_workers  ) {
-            if ( exists $stats->{$pid} && $stats->{$pid} =~ m!^A! ) {
+            my $json = $stats->{$pid};
+            my $pstatus = eval { 
+                $JSON->decode($json || '{}');
+            };
+            $pstatus ||= {};
+            if ( $pstatus->{status} && $pstatus->{status} eq 'A' ) {
                 $busy++;
             }
             else {
                 $idle++;
             }
 
-            my @pstatus = split /\s/, ($stats->{$pid} || '.');
-            $pstatus[6] = time - $pstatus[6] if defined $pstatus[6];
-            $process_status .= sprintf "%s %s\n", $pid, join(" ", @pstatus);
-            push @process_status, {
-                pid => $pid,
-                status => defined $pstatus[0] ? $pstatus[0] : undef, 
-                remote_addr => defined $pstatus[1] ? $pstatus[1] : undef,
-                host => defined $pstatus[2] ? $pstatus[2] : undef,
-                method => defined $pstatus[3] ? $pstatus[3] : undef,
-                uri => defined $pstatus[4] ? $pstatus[4] : undef,
-                protocol => defined $pstatus[5] ? $pstatus[5] : undef,
-                ss => defined $pstatus[6] ? $pstatus[6] : undef
-            };
+            if ( defined $pstatus->{time} ) {
+                $pstatus->{ss} = time - $pstatus->{time};
+            }
+            $pstatus->{pid} ||= $pid;
+            delete $pstatus->{time};
+            delete $pstatus->{ppid};
+            delete $pstatus->{uptime};
+            $process_status .= sprintf "%s\n", 
+                join(" ", map { defined $pstatus->{$_} ? $pstatus->{$_} : '' } qw/pid status remote_addr host method uri protocol ss/);
+            push @process_status, $pstatus;
         }
         $body .= <<EOF;
 BusyWorkers: $busy
