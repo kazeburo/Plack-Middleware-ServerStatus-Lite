@@ -2,6 +2,12 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.21 2013-09-04T06:51:09Z
+
+   - add server-status. check local server-status without HTTP reqs
+     Original code by karenetheridge. Thanks
+   - store status as JSON
+
 0.20 2013-08-27T00:17:34Z
 
    - Reformatted Changes file as per CPAN::Changes::Spec (Thank you neilbowers)
