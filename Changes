@@ -2,6 +2,10 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.30 2013-09-05T05:33:14Z
+
+   - non-trial release
+
 0.21 2013-09-04T06:51:09Z
 
    - add server-status. check local server-status without HTTP reqs

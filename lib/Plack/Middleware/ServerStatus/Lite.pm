@@ -12,7 +12,7 @@ use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
 
-our $VERSION = '0.21';
+our $VERSION = '0.30';
 
 my $JSON = JSON->new->utf8(0);
 
