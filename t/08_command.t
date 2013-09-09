@@ -7,6 +7,7 @@ use Plack::Loader;
 use File::Temp;
 use Capture::Tiny qw/capture/;
 use File::Spec;
+use File::Path qw/remove_tree/;
 
 my $installed = 0;
 eval {
@@ -17,8 +18,8 @@ if (!$installed ) {
     plan skip_all => 'Starman isnot installed';
 }
 
-my $dir = File::Temp::tempdir( CLEANUP => 1 );
-my ($fh, $filename) = File::Temp::tempfile( UNLINK=>1, EXLOCK=>0 );
+my $dir = File::Temp::tempdir( CLEANUP => 0 );
+my ($fh, $filename) = File::Temp::tempfile( UNLINK=>0, EXLOCK=>0 );
 my $body = "Hello World" x 2048;
 my $body_len = length $body;
 
@@ -90,5 +91,6 @@ test_tcp(
     },
 );
 
+remove_tree($dir,$filename);
 done_testing;
 
