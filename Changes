@@ -2,6 +2,10 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.31 2013-09-09T03:41:43Z
+
+   - fixing test. check stderr
+
 0.30 2013-09-05T05:33:14Z
 
    - non-trial release
