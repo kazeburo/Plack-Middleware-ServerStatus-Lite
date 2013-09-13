@@ -2,6 +2,10 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.32 2013-09-13T01:29:58Z
+
+   - fix requires. add Getopt::Long and Pod::Usage
+
 0.31 2013-09-09T03:41:43Z
 
    - fixing test. check stderr
