@@ -42,10 +42,12 @@
       },
       "runtime" : {
          "requires" : {
+            "Getopt::Long" : "2.38",
             "JSON" : "2.53",
             "Net::CIDR::Lite" : "0",
             "Parallel::Scoreboard" : "0.03",
             "Plack::Middleware" : "0",
+            "Pod::Usage" : "0",
             "Try::Tiny" : "0.09",
             "parent" : "0"
          }
