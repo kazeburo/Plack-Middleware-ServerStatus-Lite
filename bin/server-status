@@ -39,7 +39,7 @@ if ( ! scalar %$stats ) {
 # check counter file
 my $counter_fh;
 if ( $counter_file ) {
-    open($counter_fh, $counter_file) or die "couldnot open counter file: $!\n";
+    open($counter_fh, '<:unix', $counter_file) or die "couldnot open counter file: $!\n";
 }
 
 my @all_workers = keys %$stats;
@@ -73,6 +73,7 @@ if ( $counter_fh ) {
     seek $counter_fh, 10, 0;
     sysread $counter_fh, my $counter, 20;
     sysread $counter_fh, my $total_bytes, 20;
+    no warnings;
     $counter += 0;
     $total_bytes += 0;
     my $total_kbytes = int($total_bytes / 1_000);
