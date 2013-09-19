@@ -20,6 +20,8 @@ if (!$installed ) {
 
 my $dir = File::Temp::tempdir( CLEANUP => 0 );
 my ($fh, $filename) = File::Temp::tempfile( UNLINK=>0, EXLOCK=>0 );
+close($fh);
+unlink($filename);
 my $body = "Hello World" x 2048;
 my $body_len = length $body;
 

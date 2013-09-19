@@ -54,6 +54,10 @@ sub prepare_app {
         $self->{__scoreboard} = $scoreboard;
     }
 
+    if ( $self->counter_file && ! -f $self->counter_file ) {
+        open( my $fh, '>>:unix', $self->counter_file )
+            or die "could not open counter_file: $!";
+    }
 }
 
 sub call {
@@ -259,11 +263,6 @@ sub counter {
     my $self = shift;
     my $parent_pid = getppid;
     if ( ! $self->{__counter} ) {
-        if ( ! -f $self->counter_file ) {
-            eval {
-                open( my $fh, '<<:unix', $self->counter_file );
-            };
-        }
         open( my $fh, '+<:unix', $self->counter_file ) or die "cannot open counter_file: $!";
         $self->{__counter} = $fh;
         flock $fh, LOCK_EX;

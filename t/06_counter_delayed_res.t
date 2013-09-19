@@ -34,6 +34,8 @@ for my $server ( @servers ) {
 
     my $dir = File::Temp::tempdir( CLEANUP => 1 );
     my ($fh, $filename) = File::Temp::tempfile( UNLINK=>1, EXLOCK=>0 );
+    close($fh);
+    unlink($filename);
 
     my $app = builder {
         enable 'ServerStatus::Lite', 
