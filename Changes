@@ -2,6 +2,11 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.33 2013-09-19T02:49:19Z
+
+   - use open for open counter_file. 
+     Is there bugs around perlio and sysopen in perl-5.8?
+
 0.32 2013-09-13T01:29:58Z
 
    - fix requires. add Getopt::Long and Pod::Usage
