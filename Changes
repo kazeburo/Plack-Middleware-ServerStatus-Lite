@@ -2,6 +2,10 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.34 2014-09-30T02:39:47Z
+
+  - fix test in parallel mode #14
+
 0.33 2013-09-19T02:49:19Z
 
    - use open for open counter_file. 
