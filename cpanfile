@@ -13,6 +13,7 @@ on 'test' => sub {
     requires 'Starman', '0.3013';
     requires 'LWP::UserAgent';
     requires 'Capture::Tiny';
+    requires 'Test::SharedFork';
 };
 
 
