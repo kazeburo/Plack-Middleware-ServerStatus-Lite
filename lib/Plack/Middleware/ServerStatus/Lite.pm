@@ -141,7 +141,9 @@ sub _handle_server_status {
         return [403, ['Content-Type' => 'text/plain'], [ 'Forbidden' ]];
     }
 
-    my $upsince = time - $self->{uptime};
+    my $server_uptime_seconds = time - $self->{uptime};
+
+    my $upsince = $server_uptime_seconds;
     my $duration = "";
     my @spans = (86400 => 'days', 3600 => 'hours', 60 => 'minutes');
     while (@spans) {
@@ -153,14 +155,14 @@ sub _handle_server_status {
     }
     $duration .= "$upsince seconds";
 
-    my $body="Uptime: $self->{uptime} ($duration)\n";
+    my $body="ServerUptime: $duration\nUptime: $server_uptime_seconds\n";
     my %status = ( 'Uptime' => $self->{uptime} );
 
     if ( $self->counter_file ) {
         my ($counter,$bytes) = $self->counter;
         my $kbytes = int($bytes / 1_000);
         $body .= sprintf "Total Accesses: %s\n", $counter;
-        $body .= sprintf "Total Kbytes: %s\n", $kbytes;
+        $body .= sprintf "Total kBytes: %s\n", $kbytes;
         $status{TotalAccesses} = $counter;
         $status{TotalKbytes} = $kbytes;
     }
