@@ -21,7 +21,7 @@ if ( !@servers ) {
     plan skip_all => 'Starlet or Starman isnot installed';
 }
 else {
-    plan tests => 3 * scalar @servers;
+    plan tests => 4 * scalar @servers;
 }
 
 
@@ -46,7 +46,8 @@ for my $server ( @servers ) {
             my $res = $ua->get("http://localhost:$port/server-status");
             like( $res->content, qr/IdleWorkers: 0/ );
             like( $res->content, qr/BusyWorkers: 1/ );
-            like( $res->content, qr/Uptime: \d+ \(\d seconds\)/ );
+            like( $res->content, qr/Uptime: \d+/ );
+            like( $res->content, qr/ServerUptime: \d seconds/ );
         },
         server => sub {
             my $port = shift;
