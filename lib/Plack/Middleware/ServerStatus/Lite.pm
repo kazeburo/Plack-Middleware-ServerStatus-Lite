@@ -141,6 +141,10 @@ sub _handle_server_status {
         return [403, ['Content-Type' => 'text/plain'], [ 'Forbidden' ]];
     }
 
+    # Returns page with data for automatic parsing
+    # (Compatible with Apache's mod_status)
+    my $auto = ($env->{QUERY_STRING} || '') =~ m!\bauto\b!;
+
     my $upsince = time - $self->{uptime};
     my $duration = "";
     my @spans = (86400 => 'days', 3600 => 'hours', 60 => 'minutes');
@@ -201,8 +205,8 @@ sub _handle_server_status {
             @all_workers = keys %$stats;
         }
 
-        my $process_status = '';
         my @process_status;
+        my $process_status = $auto ? 'Scoreboard: ' : "--\npid status remote_addr host method uri protocol ss\n";
         for my $pid ( @all_workers  ) {
             my $json = $stats->{$pid};
             my $pstatus = eval { 
@@ -223,15 +227,17 @@ sub _handle_server_status {
             delete $pstatus->{time};
             delete $pstatus->{ppid};
             delete $pstatus->{uptime};
-            $process_status .= sprintf "%s\n", 
-                join(" ", map { defined $pstatus->{$_} ? $pstatus->{$_} : '' } qw/pid status remote_addr host method uri protocol ss/);
+            if ($auto) {
+                $process_status .= defined($pstatus->{status}) ? $pstatus->{status} : '';
+            } else {
+                $process_status .= sprintf "%s\n", 
+                    join(" ", map { defined $pstatus->{$_} ? $pstatus->{$_} : '' } qw/pid status remote_addr host method uri protocol ss/);
+            }
             push @process_status, $pstatus;
         }
         $body .= <<EOF;
 BusyWorkers: $busy
 IdleWorkers: $idle
---
-pid status remote_addr host method uri protocol ss
 $process_status
 EOF
         chomp $body;
