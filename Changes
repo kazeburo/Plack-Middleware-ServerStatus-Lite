@@ -2,6 +2,11 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.35 2016-06-06T15:30:48Z
+
+  - Improve apache's mod_status compatibility
+    Thank you tokuhirom
+
 0.34 2014-09-30T02:39:47Z
 
   - fix test in parallel mode #14
