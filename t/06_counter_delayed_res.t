@@ -64,7 +64,7 @@ for my $server ( @servers ) {
             my $accesss = $max;
             like $res->content, qr/Total Accesses: $accesss/;
             my $kbyte = int( $body_len * $accesss / 1_000 );
-            like $res->content, qr/Total Kbytes: $kbyte/;
+            like $res->content, qr/Total kBytes: $kbyte/;
         },
         server => sub {
             my $port = shift;
@@ -126,7 +126,7 @@ for my $server ( @servers ) {
             my $accesss = $max;
             like $res->content, qr/Total Accesses: $accesss/;
             my $kbyte = int( $body_len * $accesss / 1_000 );
-            like $res->content, qr/Total Kbytes: $kbyte/;
+            like $res->content, qr/Total kBytes: $kbyte/;
         },
         server => sub {
             my $port = shift;
