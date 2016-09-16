@@ -156,7 +156,7 @@ sub _handle_server_status {
     $duration .= "$upsince seconds";
 
     my $body="ServerUptime: $duration\nUptime: $server_uptime_seconds\n";
-    my %status = ( 'Uptime' => $self->{uptime} );
+    my %status = ( 'Uptime' => $self->{uptime} . "");
 
     if ( $self->counter_file ) {
         my ($counter,$bytes) = $self->counter;

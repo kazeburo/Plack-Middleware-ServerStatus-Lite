@@ -14,6 +14,7 @@ on 'test' => sub {
     requires 'LWP::UserAgent';
     requires 'Capture::Tiny';
     requires 'Test::SharedFork';
+    requires 'B';
 };
 
 
