@@ -6,6 +6,7 @@ use Plack::Builder;
 use Plack::Loader;
 use File::Temp;
 use JSON;
+use B;
 
 my @servers;
 for my $server ( qw/Starman Starlet/ ) {
@@ -22,7 +23,7 @@ if ( !@servers ) {
     plan skip_all => 'Starlet or Starman isnot installed';
 }
 else {
-    plan tests => 6 * scalar @servers;
+    plan tests => 7 * scalar @servers;
 }
 
 
@@ -51,6 +52,7 @@ for my $server ( @servers ) {
                 is( $stats->{IdleWorkers}, 3 );
                 is( $stats->{BusyWorkers}, 2 );
                 like ( $stats->{Uptime}, qr/^\d+$/ );
+                ok ((B::svref_2object(\($stats->{Uptime}))->FLAGS & B::SVp_POK ) == B::SVp_POK, 'Uptime is a string, not a number');
                 isa_ok( $stats->{stats}, 'ARRAY');
             }
             elsif ( defined $pid ) {
