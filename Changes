@@ -2,6 +2,11 @@ Revision history for Perl module Plack::Middleware::ServerStatus::Lite
 
 {{$NEXT}}
 
+0.36 2016-09-20T00:26:04Z
+
+  - Fix JSON types unexpectedly changed at 0.35 
+    Thank you astj
+
 0.35 2016-06-06T15:30:48Z
 
   - Improve apache's mod_status compatibility

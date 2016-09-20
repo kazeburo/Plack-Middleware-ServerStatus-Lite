@@ -54,6 +54,7 @@
       },
       "test" : {
          "requires" : {
+            "B" : "0",
             "Capture::Tiny" : "0",
             "LWP::UserAgent" : "0",
             "Starman" : "0.3013",
@@ -75,7 +76,7 @@
          "web" : "https://github.com/kazeburo/Plack-Middleware-ServerStatus-Lite"
       }
    },
-   "version" : "0.35",
+   "version" : "0.36",
    "x_contributors" : [
       "Jakob Voss <voss@gbv.de>",
       "Masahiro Chiba <chiba@everqueue.com>",
@@ -83,6 +84,7 @@
       "Karen Etheridge <ether@cpan.org>",
       "Neil Bowers <neil@bowers.com>",
       "Tokuhiro Matsuno <tokuhirom@gmail.com>",
+      "Asato Wakisaka <asato.wakisaka@gmail.com>",
       "Masahiro Nagano <kazeburo@gmail.com>"
    ],
    "x_serialization_backend" : "JSON::PP version 2.27203"
