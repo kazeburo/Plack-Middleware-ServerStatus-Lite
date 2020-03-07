@@ -7,7 +7,6 @@ use Plack::Util::Accessor qw(scoreboard path allow counter_file skip_ps_command)
 use Plack::Util;
 use Parallel::Scoreboard;
 use Net::CIDR::Lite;
-use Try::Tiny;
 use JSON;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Handle;
